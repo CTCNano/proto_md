@@ -1,0 +1,45 @@
+; $Id$
+; Template for energy minimisation of full system with OPLS-AA;
+; by default position restraints are used (POSRES).
+;
+; ==================================================================
+;      DO NOT USE THIS INPUT FILE WITHOUT CHECKING ALL SETTINGS.
+; *YOU* ARE SOLELY RESPONSIBLE FOR CORRECT INPUT TO YOUR SIMULATION.
+; ==================================================================
+;
+; some values from http://code.google.com/p/acpypi/wiki/TutorialAcpypi4GromacsOPLS
+
+cpp            = cpp
+include        = -I. -I.. -I../top
+define         = -DFLEXIBLE
+
+integrator     = steep
+emtol          = 100
+emstep         = 0.01
+nsteps         = 50000
+nstcgsteep     = 10
+;nstxout         = 100 ; Writing full precision coordinates every nanosecond
+;nstvout         = 10 ; Writing velocities every nanosecond
+nstlog          = 1000  ; Writing to the log file every step
+nstenergy  = 1000  ; Writing out energy information every step
+;energygrps     = System        ; Which energy group(s) to write to disk
+
+constraints              = hbonds
+constraint-algorithm     = Lincs
+lincs-order              = 4
+lincs-iter               = 1
+
+nstcomm                  = 100
+vdwtype                  = Cut-off   ; use shift for L-BFGS
+coulombtype              = Reaction-Field
+optimize_fft             = yes
+
+ns_type                  = grid
+rlist                    = 1.4
+rcoulomb                 = 1.4
+rvdw                     = 1.4
+
+Tcoupl                   = no
+Pcoupl                   = no
+gen_vel                  = no
+pbc                      = xyz

@@ -1,0 +1,120 @@
+
+; Template for MD with CHARMM27
+; (tried to approximate typical CHARMM NBOND options)
+; http://www.charmm.org/documentation/c35b1/nbonds.html
+; http://www.charmm.org/documentation/c35b1/ewald.html
+;
+; ==================================================================
+;      DO NOT USE THIS INPUT FILE WITHOUT CHECKING ALL SETTINGS.
+; *YOU* ARE SOLELY RESPONSIBLE FOR CORRECT INPUT TO YOUR SIMULATION.
+; ==================================================================
+
+include                  = -I. -I.. -I../top
+define                   =
+
+integrator               = md
+tinit                    = 0.0
+dt                       = 0.001
+nsteps                   = 10000
+
+;nstxout                  = 10
+;nstvout                  = 10
+;nstfout                  = 10
+; Output frequency for energies to log file and energy file
+nstlog                   = 1000
+nstenergy                = 1000
+nstcalcenergy            = 1000
+
+; Output frequency and precision for xtc file
+nstxtcout                = 0                ; no need for xtc output
+xtc-precision            = 1000             ; ignored
+
+comm-mode                = Linear
+nstcomm                  = 100
+comm-grps                = SYSTEM
+
+; NEIGHBORSEARCHING PARAMETERS
+; nblist update frequency
+nstlist                  = 10
+; ns algorithm (simple or grid)
+ns_type                  = grid
+; Periodic boundary conditions: xyz, no, xy
+pbc                      = xyz
+periodic_molecules       = no
+; nblist cut-off
+; NBOND CUTNB  (see notes on ELEC below)
+rlist                    = 1.4
+
+; OPTIONS FOR ELECTROSTATICS AND VDW
+; Method for doing electrostatics
+; From the CHARMM docs (ewald.doc):
+;   NBOND EWALD PMEWald KAPPa 0.34 ORDEr 6 CTOFNB 12.0 CUTNB 14.0
+coulombtype              = Reaction-Field
+rcoulomb                 = 1.4
+; Relative dielectric constant for the medium and the reaction field
+epsilon_r                = 1
+epsilon_rf               = 78
+; Method for doing Van der Waals
+;   NBOND VATOM VSWI CTONNB 10.0 CTOFNB 12.0 CUTNB 14.0
+vdw-type                 = Switch
+; cut-off lengths       
+rvdw-switch              = 1.0
+rvdw                     = 1.4
+; Apply long range dispersion corrections for Energy and Pressure 
+;   NBOND LRC
+DispCorr                 = EnerPres
+; Seperate tables between energy group pairs
+energygrp_table          = 
+; Spacing for the PME/PPPM FFT grid
+; CHARMM: EWALD recommended spacing: 0.8 A - 1.2 A and 6th Order spline
+fourierspacing           = 0.12
+; FFT grid size, when a value is 0 fourierspacing will be used
+fourier_nx               = 0
+fourier_ny               = 0
+fourier_nz               = 0
+; EWALD/PME/PPPM parameters
+; (possibly increase pme_order to 6 to match the CHARMM recommendation)
+pme_order                = 4
+ewald_rtol               = 1e-05
+ewald_geometry           = 3d
+epsilon_surface          = 0
+optimize_fft             = yes
+
+; OPTIONS FOR WEAK COUPLING ALGORITHMS
+; Temperature coupling
+tcoupl                   = yes
+tau_t                    = 0.1
+tc-grps                  = system
+ref_t                    = 50
+
+; Pressure coupling
+pcoupl                   = no       ; no pressure coupling
+pcoupltype               = isotropic ; ignored
+; Time constant (ps), compressibility (1/bar) and reference P (bar)
+tau_p                    = 0.5
+compressibility          = 4.5e-5
+ref_p                    = 1.0
+; Scaling of reference coordinates, No, All or COM
+refcoord_scaling         = No
+; Random seed for Andersen thermostat
+andersen_seed            = -1
+
+; GENERATE VELOCITIES FOR STARTUP RUN
+gen_vel                  = yes
+gen-temp                 = 50
+gen_seed                 = -1
+
+; Langevin dynamics
+bd_fric                  = 0
+ld_seed                  = 1993
+
+; OPTIONS FOR BONDS    
+; CHARMM uses SHAKE with tol 1e-6
+constraints              = hbonds
+constraint-algorithm     = Lincs
+lincs-order              = 4
+lincs-iter               = 1
+
+sc-alpha                 = 2
+sc-power                 = 1.0
+sc-sigma                 = 0.3 
