@@ -32,7 +32,7 @@ class Integrator(object):
         for n_step in range(0, end - start):
 
 	    if n_step == 0:
-		self.system.config["md_steps"] = 1000
+		self.system.config["md_steps"] = 10000
 		self.system.config["gen-vel"] = "yes"
 
 	    else:

@@ -44,7 +44,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         # we need to be called with a valid universe
         self.universe_changed(system.universe)
         
-        self.CG_step = 0
+        self.cgStep = 0
         
         # How often should the reference struct be updated
         self.Freq_Update = freq
@@ -52,7 +52,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         logging.info("created LegendreSubsystem, pindices: {}, select: {}".
                      format(pindices, select))
 
-    def NumNodes(self):
+    def numNodes(self):
 	return self.numnodes
 
     def universe_changed(self, universe):
@@ -75,15 +75,15 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         Returns a 3 tuple of CG variables, each one is a row vector of size n_cg
         """
 
-        CG = self.ComputeCG(self.atoms.positions)
-        CG_Vel = self.ComputeCG_Vel(self.atoms.velocities())
-        CG_For = self.ComputeCG_Forces(self.atoms.forces)
+        cg = self.computeCG(self.atoms.positions)
+        cgVel = self.computeCGVel(self.atoms.velocities())
+        cgFor = self.computeCGForces(self.atoms.forces)
 
-        CG = np.reshape(CG.T,(CG.shape[0]*CG.shape[1]))
-        CG_Vel = np.reshape(CG_Vel.T,(CG_Vel.shape[0]*CG_Vel.shape[1]))
-        CG_For = np.reshape(CG_For.T,(CG_For.shape[0]*CG_For.shape[1]))
+        cg = np.reshape(cg.T, (cg.shape[0]*cg.shape[1]))
+        cgVel = np.reshape(cgVel.T, (cgVel.shape[0]*cgVel.shape[1]))
+        cgFor = np.reshape(cgFor.T, (cgFor.shape[0]*cgFor.shape[1]))
 
-        return (CG,CG_Vel,CG_For)
+        return (cg, cgVel, cgFor)
 
     def translate(self, dCG):
         """
@@ -94,9 +94,12 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
  
         @param CG: a length N_cg 1D array.
         """
-        self.atoms.positions += self.ComputeCGInv(dCG)
+        self.atoms.positions += self.computeCGInv(dCG)
 
     def minimized(self):
+    	"""
+    	This is called right after energy minimization is completed.
+    	"""
         pass
 
     def equilibriated(self):
@@ -115,83 +118,80 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
 
     def md(self):
 	"""
-	this is called right after MD trajectories are processed.
+	This is called right after MD trajectories are processed.
 	"""
-        self.CG_step += 1
+        self.cgStep += 1
 
-    def ComputeCGInv(self,CG):
+    def computeCGInv(self, cg):
         """
-        Computes atomic positions from CG positions
+        Computes atomic positions from cg positions
         Using the simplest scheme for now
-        @param CG: 3*n_cg x 1 array
-        @return: a n_atom x 3array
+        @param cg: 3*n_cg x 1 array
+        @return: a nAtom x 3 array
         """
-        NCG = CG.shape[0]/3
+        nCG = cg.shape[0]/3
 
-        x = np.dot(self.basis,CG[:NCG])
-        y = np.dot(self.basis,CG[NCG:2*NCG])
-        z = np.dot(self.basis,CG[2*NCG:3*NCG])
+        x = np.dot(self.basis, cg[:nCG])
+        y = np.dot(self.basis, cg[nCG:2*nCG])
+        z = np.dot(self.basis, cg[2*nCG:3*nCG])
 
 	return np.array([x,y,z]).T
 
-    def ComputeCG(self,var):
+    def computeCG(self, pos):
         """
         Computes CG momenta or positions
-        CG = U^t * Mass * var
-        var could be atomic positions or velocities
+        CG = U^t * Mass * pos
         """
         Utw = self.basis.T * self.atoms.masses()
 
-        CG = solve(np.dot(Utw, self.basis), np.dot(Utw,var - self.ref_coords))
+        cg = solve(np.dot(Utw, self.basis), np.dot(Utw,pos - self.atoms.centerOfMass())
 
-	return CG
-        
-    def ComputeCG_Vel(self,vel):
+	return cg
+	        
+    def computeCGVel(self, vel):
         """
         Computes CG momenta or positions
-        CG = U^t * Mass * var
-        var could be atomic positions or velocities
+        CG = U^t * Mass * vel
+        We assume the center of mass does not change in time
         """
 
         Utw = self.basis.T * self.atoms.masses()	
-        Pi = solve(np.dot(Utw, self.basis), np.dot(Utw,vel))
+        vel = solve(np.dot(Utw, self.basis), np.dot(Utw,vel))
 
-	return Pi
+	return vel
 
-    def ComputeCG_Forces(self, atomic_forces):
+    def computeCGForces(self, forces):
         """
         Computes CG forces = U^t * <f>
         for an ensemble average atomic force <f>
         """
 	Utw = self.basis.T * self.atoms.masses()
 
-        return solve(np.dot(Utw, self.basis), np.dot(Utw,atomic_forces))
+        return solve(np.dot(Utw, self.basis), np.dot(Utw, forces))
 
-    def Construct_Basis(self,coords):
+    def constructBasis(self,coords):
         """
         Constructs a matrix of orthonormalized legendre basis functions
         of size Natoms x NCG.
         """
         logging.info('Performing QR decomposition ...')
 
-        Masses = self.atoms.masses()[:,np.newaxis]
-
 	# normalize coords to [-1,1]        
-        ScaledPos = (coords - coords.mean(axis=0)) / self.box
+        scaledPos = (coords - coords.mean(axis=0)) / self.box
 
         # grab the masses, and make it a column vector
-        Basis = np.zeros([ScaledPos.shape[0], self.pindices.shape[0]],'f')
+        basis = np.zeros([scaledPos.shape[0], self.pindices.shape[0]],'f')
 
         for i in xrange(self.pindices.shape[0]):
             k1, k2, k3 = self.pindices[i,:]
-            px = legendre(k1)(ScaledPos[:,0])
-            py = legendre(k2)(ScaledPos[:,1])
-            pz = legendre(k3)(ScaledPos[:,2])
-            Basis[:,i] = px * py * pz
+            px = legendre(k1)(scaledPos[:,0])
+            py = legendre(k2)(scaledPos[:,1])
+            pz = legendre(k3)(scaledPos[:,2])
+            basis[:,i] = px * py * pz
 
-        return Basis
+        return basis
 
-def QR_Decomp(V):
+def qrDecomp(V):
     """
     Performs QR decomposition on a matrix V to produce an orthonormalized
     matrix Q..

@@ -3,14 +3,14 @@ import numpy as np
 import matplotlib.pylab as plt
 import util
 
-def Loop(U, SS):
+def loop(U, SS):
 
     U.trajectory.next()
     var_cg_t = [ss.frame() for ss in SS]
 
     return var_cg_t, U
 
-def Plot_Time_Integral(pdb, traj, var, ofname, subsystem_factory, plot, sel, subsystem_args, N_CG_plot, nframes):
+def plotTimeIntegral(pdb, traj, var, ofname, subsystem_factory, plot, sel, subsystem_args, nCGplot, nframes):
     print 'Reading input ...'
     print sel
     U = md.Universe(pdb,traj)
@@ -27,10 +27,9 @@ def Plot_Time_Integral(pdb, traj, var, ofname, subsystem_factory, plot, sel, sub
     [ss.universe_changed(U) for ss in SS]
     [ss.equilibriated() for ss in SS]
 
-    if N_CG_plot is None:
-	N_CG_plot = SS[0].NumNodes()
+    if nCGplot is None:
+	nCGplot = SS[0].NumNodes()
 
-    print N_CG_plot
     global_nframes = 0
     U.trajectory.rewind()
 
@@ -40,7 +39,7 @@ def Plot_Time_Integral(pdb, traj, var, ofname, subsystem_factory, plot, sel, sub
     var_cg = [ss.frame() for ss in SS]
     
     for i in xrange(trials):
-        var_cg_t, U = Loop(U, SS)
+        var_cg_t, U = loop(U, SS)
 
 	for n_ss in xrange(len(var_cg_t)):
         	np.savetxt(fp[n_ss], (var_cg_t[n_ss][0] - var_cg[n_ss][0]) / (i+1.0))

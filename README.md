@@ -1,10 +1,10 @@
 proto_md
-=======
+========
 Prototyping toolkit for multiscale MD
 
 Authors
 =======
-Andy Somogyie
+Andre Somogyie
 Andrew Abi Mansour
 
 Institution
