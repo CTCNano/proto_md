@@ -4,7 +4,7 @@ Prototyping toolkit for multiscale MD
 
 Authors
 =======
-Andre Somogyie
+Andre Somogyie,
 Andrew Abi Mansour
 
 Institution
