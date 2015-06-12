@@ -13,7 +13,7 @@ Indiana University, Bloomington
 
 Prerequisites
 =============
-GromacsWrapper - https://github.com/Becksteinlab/GromacsWrapper
+GromacsWrapper - https://github.com/CTCNano/GromacsWrapper
 MDAnalysis - https://code.google.com/p/mdanalysis
 Numpy - http://www.numpy.org
 Scipy - http://www.scipy.org
