@@ -26,6 +26,14 @@ The GromacsWrapper must be installed manually (see link above).
 python setup.py build
 python setup.py install --user
 
+WORKING EXAMPLE
+===============
+Config script for 1PRT is located in test/1PRT.mkconf
+Running it will generate 1PRT.hdf, which can be
+used to initiate a multiscale simulation:
+
+pythong -m proto_md 1PRT.hdf run
+
 License
 =======
 GPU v2.0 (or above)

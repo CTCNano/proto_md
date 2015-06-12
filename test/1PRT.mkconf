@@ -4,10 +4,10 @@ python -m proto_md config \
 	   -struct 1PRT.gro \
 	   -temperature 300.0 \
 	   -subsystem_selects "protein" \
-	   -cg_steps 7400 \
+	   -cg_steps 500 \
 	   -dt 0.5 \
-	   -mn_steps 0 \
-	   -eq_steps 50 \
+	   -mn_steps 50 \
+	   -eq_steps 100 \
 	   -md_steps 100 \
 	   -top TOP/1PRT.top \
            -I TOP \
