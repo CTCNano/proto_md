@@ -1,0 +1,31 @@
+proto_md
+========
+Prototyping toolkit for multiscale MD
+
+Authors
+=======
+Andre Somogyie,
+Andrew Abi Mansour
+
+Institution
+===========
+Indiana University, Bloomington
+
+Prerequisites
+=============
+GromacsWrapper - https://github.com/Becksteinlab/GromacsWrapper
+MDAnalysis - https://code.google.com/p/mdanalysis
+Numpy - http://www.numpy.org
+Scipy - http://www.scipy.org
+
+Installation
+============
+Installation uses python's setuptools. 
+The GromacsWrapper must be installed manually (see link above).
+
+python setup.py build
+python setup.py install --user
+
+License
+=======
+GPU v2.0 (or above)

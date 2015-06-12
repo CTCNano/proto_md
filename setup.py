@@ -15,9 +15,9 @@ with open("README") as readme:
 
 version = "0.0.1"
 
-setup(name="DMS",
+setup(name="proto_md",
       version=version,
-      description="A library for doing coarse grained brownian motion dynamics.",
+      description="A library for doing coarse grained molecular dynamics.",
       long_description=long_description,
       author="Andy Somogyi :: Andrew Abi-Mansour",
       author_email="anabiman at indiana dot edu",
@@ -45,10 +45,6 @@ setup(name="DMS",
       install_requires = ['numpy>=1.0',
                           'scipy',        # numkit needs it
                           "MDAnalysis", 
-                          "GromacsWrapper"
                           ],              # basic package (w/o analysis)
-      extras_require = {
-                'numkit': ['scipy'],
-                },
       zip_safe = True,
 )
