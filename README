@@ -41,6 +41,21 @@ a multiscale simulation is found in the SAMPLE dir.
 
 To run it, simply execute from the terminal: bash run.mkconf
 
+SOURCE CODE
+===========
+proto_md/config.py: Handles configuration of proto_md environment variables and templates.
+proto_md/correlation.py: functions for computing correlation functions.
+proto_md/diffusion.py: functions for computing diffusion coefficients.
+proto_md/dynamics.py: functions to calculate dynamic properties of CG variables. 
+proto_md/__init__.py: initializer for importing proto_md as a package
+proto_md/__main__.py: functions for arg parsing (when using proto_md as a program)
+proto_md/md.py: functions for setting up and performing md calculations.
+proto_md/system.py: functions for creating the System object, handling I/O, and calling MD functions 
+proto_md/subsystems: contains modules specific to various coarse-graining methods
+proto_md/util: contains modules for reading and writng files to / from disk and hdf blobs
+proto_md/templates: contains GROMACS mdp config template files
+proto_md/integrators: contains modules for various multiscale integrators
+
 License
 =======
 GPU v3 (or above)
