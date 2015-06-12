@@ -1,0 +1,4 @@
+2015-06-11 23:30:45,226:DEBUG:<module>:Failed to import netCDF4; AMBER NETCDFReader/Writer will not work. Install netCDF4 from http://code.google.com/p/netcdf4-python/.
+2015-06-11 23:30:45,226:DEBUG:<module>:See also https://code.google.com/p/mdanalysis/wiki/netcdf
+2015-06-11 23:30:54,032:DEBUG:<module>:Failed to import netCDF4; AMBER NETCDFReader/Writer will not work. Install netCDF4 from http://code.google.com/p/netcdf4-python/.
+2015-06-11 23:30:54,032:DEBUG:<module>:See also https://code.google.com/p/mdanalysis/wiki/netcdf

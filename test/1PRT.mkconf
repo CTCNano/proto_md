@@ -10,7 +10,7 @@ python -m proto_md config \
 	   -eq_steps 50 \
 	   -md_steps 100 \
 	   -top TOP/1PRT.top \
-           -ITOP \
+           -I TOP \
 	   -multi 1 \
 	   -integrator proto_md.integrators.FactorizationIntegrator \
 	   -subsystem_factory \
