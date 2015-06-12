@@ -1,6 +1,6 @@
 # setuptools installation of proto_md
 # Copyright (c) 2011-2015 Adrew Abi-Mansour : anabiman at indiana dot edu
-# Released under the GNU Public License 2 (or higher, your choice)
+# Released under the GNU Public License 3 (or higher, your choice)
 # setup.py originally boosted from Oliver Beckstein's Gromacs Wrapper 
 #
 from __future__ import with_statement
