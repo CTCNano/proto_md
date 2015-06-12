@@ -36,7 +36,6 @@ python setup.py install --user
 
 WORKING EXAMPLE
 ===============
-<<<<<<< HEAD
 A bash script that creates an input (hdf) file and runs
 a multiscale simulation is found in the SAMPLE dir.
 
@@ -50,7 +49,6 @@ python -m proto_md 1PRT.mkconf
 With this, a multiscale simulation can be initiated:
 
 python -m proto_md 1PRT.hdf run
->>>>>>> daca7a55422dc4495c70ded49c5b74eb39453180
 
 License
 =======
