@@ -77,7 +77,6 @@ def data_tofile(data, fid=None, sep="", fmt="%s", dirname="."):
                 if type(data) is h5py.Dataset:
                     if fid is None:
                         fid = os.path.split(data.name)[1]
-                        print('fid:',fid)
                     # data now becomes an ndarray
                     data = data[()]
                 if type(data) is n.ndarray:  

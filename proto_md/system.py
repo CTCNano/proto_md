@@ -593,7 +593,6 @@ class System(object):
 
             # universe is saved, process trajectories
             for fi, f in enumerate(trajectories):
-                print(f)
                 self.universe.load_new(f, sub=sub)
                 for tsi, _ in enumerate(self.universe.trajectory):
                     if tsi < self.cg_velocities.shape[2]:

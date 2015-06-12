@@ -184,7 +184,6 @@ def make_parser():
         s.begin_timestep()
         s.solvate()
         s.end_timestep()  
-        print(sys)
     ap.set_defaults(__func__=sol)
     
 
@@ -201,9 +200,7 @@ def make_parser():
         s.begin_timestep()
         if sol:
             sol = s.solvate()
-            print("sol: {}".format(sol))
             mn = s.minimize(**sol)
-            print("mn: {}".format(mn))
             s.end_timestep()
         else:
             s.minimize()
@@ -222,11 +219,8 @@ def make_parser():
         s.begin_timestep()
         if sol:
             sol = s.solvate()
-            print("sol: {}".format(sol))
             mn = s.minimize(**sol)
-            print("mn: {}".format(mn))
             eq = s.equilibriate(**mn)
-            print("eq: {}".format(eq))
         else:
             s.minimize()
             s.equilibriate()
@@ -245,11 +239,8 @@ def make_parser():
         s.begin_timestep()
         if sol:
             sol = s.solvate()
-            print("sol: {}".format(sol))
             mn = s.minimize(**sol)
-            print("mn: {}".format(mn))
             eq = s.equilibriate(**mn)
-            print("eq: {}".format(eq))
             s.md(**eq)
         else:
             s.minimize()
@@ -271,9 +262,7 @@ def make_parser():
         s.begin_timestep()
         if sol:
             sol = s.solvate()
-            print("sol: {}".format(sol))
             eq = s.equilibriate(**sol)
-            print("eq: {}".format(eq))
         else:
             s.equilibriate()
         s.end_timestep()
@@ -317,7 +306,6 @@ def make_parser():
         s.begin_timestep()
         if sol:
             sol = s.solvate()
-            print("sol: {}".format(sol))
             s.md(**sol)
         else:
             s.md()
@@ -364,12 +352,10 @@ def test(fid,
          should_solvate = False,
          ndx=None,
          **kwargs):
-    print("hello")
     
 # make the arg parser, and call whatever func was stored with the arg. 
 parser = make_parser()
 args = parser.parse_args()
-print(args)
 func = args.__func__
 del args.__dict__["__func__"]
 func(**args.__dict__)

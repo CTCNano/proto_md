@@ -431,8 +431,6 @@ def topology(struct, protein="protein", dirname="top", ff="charmm27", water="spc
     result = gromacs.setup.topology(struct, protein, "system.top", dirname, **pdb2gmx_args)
     result["dirname"] = dirname
 
-    print("result: {}".format(result))
-
     return MDManager(result)
 
 
@@ -708,10 +706,6 @@ def run_md_debug(dirname, md_runner=MDrunner, **kwargs):
     #runner.run_check()
 
     trajectories = [os.path.abspath(trr) for trr in glob.glob(dirname + "/*.trr")]
-
-    print("structs", structs)
-    print("pwd", os.path.curdir)
-    print("dirname", dirname)
 
     found_structs = [s for s in structs if os.path.isfile(s)]
     notfound_structs = [s for s in structs if not os.path.isfile(s)]

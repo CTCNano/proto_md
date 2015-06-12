@@ -145,11 +145,7 @@ def create_top(o, struct, posres):
         # 'posres': 'protein_posres.itp', 
         # 'struct': '/home/andy/tmp/Au/top/protein.pdb'}
         
-    print("succesfully auto-generated topology")
-        
-    print('pwd', os.getcwd())
-    print('top', top)
-        
+    print("succesfully auto-generated topology")        
 
     """
         
@@ -196,8 +192,6 @@ def create_sol(o, struct, top, posres, box=None):
     # 'struct': '/home/andy/tmp/Au/solvate/solvated.pdb', 
     # 'qtot': 0})
     print("auto solvation successfull")
-    print(sol)
-
                 
 def create_sim(fid,
                struct,
@@ -276,7 +270,6 @@ def create_sim(fid,
                         conf[keyname + VALUES] = value.values()
                     else:
                         conf[keyname] = typ(value)
-                    print("config[{}] = {}".format(keyname, value))
                 except Exception, e:
                     print("error, could not convert \"{}\" with value of \"{}\" to an {} type".
                           format(keyname, value, typ))
@@ -361,9 +354,6 @@ def create_sim(fid,
 
                 print("succesfully auto-generated topology")
 
-                print('pwd', os.getcwd())
-                print('top', top)
-
                 filedata_fromfile(TOPOL_TOP, top["top"])
                 filedata_fromfile(STRUCT_PDB, top["struct"])
                 include_dirs = [os.path.abspath(top.dirname)]
@@ -421,7 +411,7 @@ def create_sim(fid,
                 
             # we have a fake sys now, can call subsys factory
             factory = util.get_class(subsystem_factory)
-            print("created subsystem factory {}, attepting to create subsystems...".format(subsystem_factory))
+            print("created subsystem factory {}, attempting to create subsystems...".format(subsystem_factory))
             test_ncgs, test_ss = factory(dummysys, subsystem_selects, *(subsystem_args))
             
             print("subsystem factory appears to work, produces {} cg variables for each {} subsystems.".format(test_ncgs, len(test_ss)))
@@ -429,8 +419,6 @@ def create_sim(fid,
             conf[SUBSYSTEM_FACTORY] = subsystem_factory
             conf[SUBSYSTEM_SELECTS] = subsystem_selects
             conf[SUBSYSTEM_ARGS] = subsystem_args
-
-            print("{}: {}".format(SUBSYSTEM_FACTORY, subsystem_factory))
 
         except Exception, e:
             print("error creating subsystem_class, {}".format(e))

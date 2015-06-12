@@ -21,9 +21,7 @@ def fcc_sphere(a, radius):
     side_len = ceil(2.*radius/a)*a
     pc = arange(0.0, side_len+a, a)
     fcc = arange(a/2., side_len, a)
-    
-    print(fcc)
-     
+         
     # make the primitive cubic points
     for x in pc:
         for y in pc:
@@ -78,9 +76,7 @@ def test(a, radius):
     ax = fig.add_subplot(111, projection='3d')
     
     pts=fcc_sphere(a, radius)
-    
-    print(pts.shape)
-    
+        
     ax.scatter(pts[:,0],pts[:,1],pts[:,2])
     plt.show()
     
@@ -121,8 +117,6 @@ def make_index(struct, ndx='main.ndx', oldndx=None):
 
     #logging.info("Building the main index file %(ndx)r..." % vars())
     
-    print("make_ndx")
-
     # pass 1: select
     # empty command '' important to get final list of groups
     rc,out,nothing = gromacs.make_ndx(f=struct, n=oldndx, o=ndx, stdout=False,  #@UndefinedVariable
@@ -141,8 +135,6 @@ def make_index(struct, ndx='main.ndx', oldndx=None):
     #                                         'name %d __environment__' % (last+1),
     #                                         '', 'q'))
     
-    print("done")
-    print(out)
     return gromacs.cbook.parse_ndxlist(out)
             
 
@@ -236,7 +228,6 @@ def test3():
         top = "{}.top".format(fbase)
         sol = "{}.sol.pdb".format(fbase)
         ndx = "{}.ndx".format(fbase)
-        print(top,sol,ndx)
         gromacs.grompp(f="md3.mdp", o="{}.tpr".format(fbase), c=sol, p=top, n=ndx) #@UndefinedVariable
         
 def make_tpr(box, rrange):
@@ -257,8 +248,6 @@ def merge_hdf(gpat, out):
     files = glob.glob(gpat)
     with h5py.File(out, "w") as out:
         for f, fname in [(h5py.File(f, "r"), os.path.splitext(f)[0]) for f in files]:
-            print(f)
-            print(fname)
             print(f["0/POSITIONS"].value[0,0,:,:])
             print(f["0/VELOCITIES"].value[0,0,:,:])
             print(f["0/FORCES"].value[0,0,:,:])
