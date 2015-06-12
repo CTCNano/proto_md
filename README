@@ -39,16 +39,7 @@ WORKING EXAMPLE
 A bash script that creates an input (hdf) file and runs
 a multiscale simulation is found in the SAMPLE dir.
 
-To run it, simply run from the terminal: bash run.mkconf
-=======
-Config script for 1PRT is located in test/1PRT.mkconf
-Running it will generate 1PRT.hdf:
-
-python -m proto_md 1PRT.mkconf
-
-With this, a multiscale simulation can be initiated:
-
-python -m proto_md 1PRT.hdf run
+To run it, simply execute from the terminal: bash run.mkconf
 
 License
 =======
