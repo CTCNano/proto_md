@@ -1,7 +1,7 @@
 #!/bin/sh
 python -m proto_md config \
-	   -o 1PRT.hdf \
-	   -struct 1PRT.gro \
+	   -o Output/output.hdf \
+	   -struct Struct/1PRT.gro \
 	   -temperature 300.0 \
 	   -subsystem_selects "protein" \
 	   -cg_steps 500 \
@@ -9,10 +9,12 @@ python -m proto_md config \
 	   -mn_steps 50 \
 	   -eq_steps 100 \
 	   -md_steps 100 \
-	   -top TOP/1PRT.top \
-           -I TOP \
+	   -top Top/1PRT.top \
+           -I Top \
 	   -multi 1 \
 	   -integrator proto_md.integrators.FactorizationIntegrator \
 	   -subsystem_factory \
 	    proto_md.subsystems.SpaceWarpingSubsystemFactory \
 	   -subsystem_args 1
+
+python -m proto_md run Output/output.hdf
