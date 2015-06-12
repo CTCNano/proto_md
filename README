@@ -21,10 +21,12 @@ Scipy - http://www.scipy.org
 Installation
 ============
 Installation uses python's setuptools. 
-The GromacsWrapper must be installed manually (see link above).
 
 python setup.py build
 python setup.py install --user
+
+N.B. the GromacsWrapper may have to be installed manually (see link above)
+if PyPI fails to install it.
 
 WORKING EXAMPLE
 ===============

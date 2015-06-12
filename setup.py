@@ -45,6 +45,7 @@ setup(name="proto_md",
       install_requires = ['numpy>=1.0',
                           'scipy',        # numkit needs it
                           "MDAnalysis", 
+			  "GromacsWrapper",
                           ],              # basic package (w/o analysis)
       zip_safe = True,
 )

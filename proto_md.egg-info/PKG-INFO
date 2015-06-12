@@ -1,0 +1,60 @@
+Metadata-Version: 1.1
+Name: proto-md
+Version: 0.0.1
+Summary: A library for doing coarse grained molecular dynamics.
+Home-page: ://github.com/CTCNano/proto_md
+Author: Andy Somogyi :: Andrew Abi-Mansour
+Author-email: anabiman at indiana dot edu
+License: GPLv2
+Description: proto_md
+        ========
+        Prototyping toolkit for multiscale MD
+        
+        Authors
+        =======
+        Andre Somogyie,
+        Andrew Abi Mansour
+        
+        Institution
+        ===========
+        Indiana University, Bloomington
+        
+        Prerequisites
+        =============
+        GromacsWrapper - https://github.com/Becksteinlab/GromacsWrapper
+        MDAnalysis - https://code.google.com/p/mdanalysis
+        Numpy - http://www.numpy.org
+        Scipy - http://www.scipy.org
+        
+        Installation
+        ============
+        Installation uses python's setuptools. 
+        The GromacsWrapper must be installed manually (see link above).
+        
+        python setup.py build
+        python setup.py install --user
+        
+        WORKING EXAMPLE
+        ===============
+        Config script for 1PRT is located in test/1PRT.mkconf
+        Running it will generate 1PRT.hdf, which can be
+        used to initiate a multiscale simulation:
+        
+        pythong -m proto_md 1PRT.hdf run
+        
+        License
+        =======
+        GPU v2.0 (or above)
+        
+Keywords: science Gromacs analysis 'molecular dynamics'
+Platform: UNKNOWN
+Classifier: Development Status :: 0.0.1 - way pre alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Linux
+Classifier: Programming Language :: Python
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Classifier: Topic :: Scientific/Engineering :: Chemistry
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
