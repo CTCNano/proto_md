@@ -75,7 +75,6 @@ def data_tofile(data, fid=None, sep="", fmt="%s", dirname="."):
         else:
             with utilities.in_dir(dirname):
                 if type(data) is h5py.Dataset:
-                    print('name:',data.name)
                     if fid is None:
                         fid = os.path.split(data.name)[1]
                         print('fid:',fid)
@@ -85,8 +84,6 @@ def data_tofile(data, fid=None, sep="", fmt="%s", dirname="."):
                     print('writing file {} in dir {}'.format(fid,dirname))
                     data.tofile(fid,sep,fmt)
                 elif isinstance(data, MDAnalysis.core.AtomGroup.AtomGroup) or isinstance(data, MDAnalysis.core.AtomGroup.Universe):
-                    print("pwd", os.path.curdir)
-                    print("fid", fid)
                     w = MDAnalysis.Writer(fid,numatoms=len(data.atoms))
                     w.write(data)
                     del w
