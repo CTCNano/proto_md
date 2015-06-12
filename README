@@ -31,10 +31,13 @@ if PyPI fails to install it.
 WORKING EXAMPLE
 ===============
 Config script for 1PRT is located in test/1PRT.mkconf
-Running it will generate 1PRT.hdf, which can be
-used to initiate a multiscale simulation:
+Running it will generate 1PRT.hdf:
 
-pythong -m proto_md 1PRT.hdf run
+python -m proto_md 1PRT.mkconf
+
+With this, a multiscale simulation can be initiated:
+
+python -m proto_md 1PRT.hdf run
 
 License
 =======
