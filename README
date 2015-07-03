@@ -17,6 +17,12 @@ GromacsWrapper - https://github.com/CTCNano/GromacsWrapper
 MDAnalysis - https://code.google.com/p/mdanalysis
 Numpy - http://www.numpy.org
 Scipy - http://www.scipy.org
+openMPI - http://www.open-mpi.org or MPICH  - https://www.mpich.org
+Gromacs - http://www.gromacs.org
+
+protoMD has been tested with:
+- Gromacs 4.6.x and 5.0.x
+- MDAnalysis 0.7.8
 
 Installation
 ============
@@ -33,6 +39,10 @@ git clone https://github.com/CTCNano/GromacsWrapper
 cd GromacsWrapper
 python setup.py build
 python setup.py install --user
+
+RUNNING PROTOMD
+===============
+
 
 WORKING EXAMPLE
 ===============
