@@ -60,6 +60,10 @@ def make_parser():
                     default="proto_md.subsystems.RigidSubsystemFactory",
                     help="fully qualified function name which can create a set of subsystems, "
                          "can be set to \'proto_md.subsystems.LegendreSubsystemFactory\'")
+
+
+    ap.add_argument("-top_args", default={'ff':'charmm27', 'protein':'protein'}, type=eval,
+                    help="topology (GROMACS) dictionary file")
                   
     ap.add_argument("-subsystem_selects", dest="subsystem_selects", required=False, 
                     nargs="+", default=["not resname SOL"],
@@ -81,6 +85,25 @@ def make_parser():
                     help="fully qualified name of the integrator function, "
                          "defaults to \'proto_md.integrators.FactorizationIntegrator\', "
                          "but the other integrator we provide is \'proto_md.integrators.LangevinIntegrator\'")
+
+    ap.add_argument("-integrator_args", default = [], nargs='+',
+                    help="additional arguments passed to the integrator function")
+
+
+    ap.add_argument('-Imdp', action='append', dest='include_mdp_dirs',
+                    default='templates', type=str, required=False,
+                    help="Include directories to search for mdp config files. There can be many "
+                         "additional include directories, just like gcc, but UNLIKE GCC, there must be a space "
+                         "between the -Imdp and the dir, for example -Imdp /home/foo -Imdp /home/foo/bar.")
+
+    ap.add_argument("-anion", dest="anion", required=False, type=str, default='CL',
+                    help="anion name to use for ionization (if system is not neutral)")
+
+    ap.add_argument("-cation", dest="cation", required=False, type=str, default='NA', 
+                    help="cation name to use for ionization (if system is not neutral)")
+
+    ap.add_argument("-concentration", dest="concentration", required=False, type=float, default=0.1, 
+                    help="concentration (in mol/L) of ions to use for ionization (if system is not neutral)")
     
     ap.add_argument("-cg_steps", default = 10,
                     help="number of coarse grained time steps")
@@ -103,11 +126,13 @@ def make_parser():
     ap.add_argument("-mn_args", default=config.DEFAULT_MN_ARGS, 
                     help="additional parameters to be changed in the minimization options", type=eval)
 
-    ap.add_argument("-eq_args", default=config.DEFAULT_EQ_ARGS, type=eval)
-    ap.add_argument("-md_args", default=config.DEFAULT_MD_ARGS, type=eval)
+    ap.add_argument("-eq_args", default=config.DEFAULT_EQ_ARGS, type=eval, help="equilibration (GROMACS) config file")
+    ap.add_argument("-md_args", default=config.DEFAULT_MD_ARGS, type=eval, help="MD (GROMACS) config file")
 
-    ap.add_argument("-ndx", default=None, 
-                    help="name of index file")
+    ap.add_argument("-ndx", default=None, help="name of index file")
+
+
+    ap.add_argument("-center", action="store_true", help="centers the system in the supplied box before beginning simulation")
 
     ap.add_argument("-solvate", dest="should_solvate", action="store_true",
                     help="should the system be auto-solvated, if this is set, struct must NOT contain solvent. "
@@ -328,30 +353,6 @@ def make_parser():
     ap.set_defaults(__func__=cg_step)
     
     return parser
-
-def test(fid,
-         struct,
-         box,
-         top = None,
-         posres = None,
-         temperature = 300,
-         subsystem_factory = "proto.subsystems.RigidSubsystemFactory",
-         subsystem_selects = ["not resname SOL"],
-         subsystem_args = [],
-         integrator = "proto.integrators.LangevinIntegrator",
-         integrator_args = [],
-         cg_steps = 10,
-         dt  = 0.1,
-         mn_steps = 500,
-         md_steps = 100,
-         multi = 1,
-         eq_steps = 10,
-         mn_args = None,
-         eq_args = None,
-         md_args = None,
-         should_solvate = False,
-         ndx=None,
-         **kwargs):
     
 # make the arg parser, and call whatever func was stored with the arg. 
 parser = make_parser()

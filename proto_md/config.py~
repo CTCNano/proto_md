@@ -79,11 +79,11 @@ KB = 0.0083144621
 
 CURRENT_TIMESTEP = "current_timestep" 
 SRC_FILES = "src_files"
-FILE_DATA_LIST = ["struct.gro", "topol.top", "index.ndx", "posres.itp"]
+FILE_DATA_LIST = ["struct.pdb", "topol.top", "index.ndx", "posres.itp"]
 TOP_INCLUDES = "top_includes"
 TIMESTEPS = "timesteps"
 CONFIG = "config"
-STRUCT_PDB = "struct.gro"
+STRUCT_PDB = "struct.pdb"
 TOPOL_TOP = "topol.top"
 INDEX_NDX = "index.ndx"
 CG_STEPS = "cg_steps"
@@ -148,7 +148,7 @@ def create_top(o, struct, posres):
         # {'top': '/home/andy/tmp/Au/top/system.top', 
         # 'dirname': 'top', 
         # 'posres': 'protein_posres.itp', 
-        # 'struct': '/home/andy/tmp/Au/top/protein.gro'}
+        # 'struct': '/home/andy/tmp/Au/top/protein.pdb'}
         
     print("succesfully auto-generated topology")        
 
@@ -163,7 +163,7 @@ def create_top(o, struct, posres):
             # solvate returns 
             # {'ndx': '/home/andy/tmp/Au/solvate/main.ndx', 
             # 'mainselection': '"Protein"', 
-            # 'struct': '/home/andy/tmp/Au/solvate/solvated.gro', 
+            # 'struct': '/home/andy/tmp/Au/solvate/solvated.pdb', 
             # 'qtot': 0})
             print("auto solvation successfull")
     """
@@ -175,7 +175,7 @@ def create_sol(o, struct, top, posres, box=None):
     # {'top': '/home/andy/tmp/Au/top/system.top', 
     # 'dirname': 'top', 
     # 'posres': 'protein_posres.itp', 
-    # 'struct': '/home/andy/tmp/Au/top/protein.gro'}
+    # 'struct': '/home/andy/tmp/Au/top/protein.pdb'}
     
  
     # convert Angstrom to Nm, GROMACS works in Nm, and
@@ -194,7 +194,7 @@ def create_sol(o, struct, top, posres, box=None):
     # solvate returns 
     # {'ndx': '/home/andy/tmp/Au/solvate/main.ndx', 
     # 'mainselection': '"Protein"', 
-    # 'struct': '/home/andy/tmp/Au/solvate/solvated.gro', 
+    # 'struct': '/home/andy/tmp/Au/solvate/solvated.pdb', 
     # 'qtot': 0})
     print("auto solvation successfull")
                 
@@ -316,7 +316,7 @@ def create_sim(fid,
             print("centering molecule in box, new center of mass will be {}".format(box / 2))
             trans = box / 2 - universe.atoms.centerOfMass()
             universe.atoms.translate(trans)
-            fd, centered_struct = tempfile.mkstemp(suffix=".gro")
+            fd, centered_struct = tempfile.mkstemp(suffix=".pdb")
             writer = MDAnalysis.Writer(centered_struct)
             struct = centered_struct
             writer.write(universe)
@@ -365,7 +365,7 @@ def create_sim(fid,
                 # topology returns:
                 # {'top': '/home/andy/tmp/Au/top/system.top', 
                 # 'dirname': 'top', 
-                # 'struct': '/home/andy/tmp/Au/top/protein.gro'}
+                # 'struct': '/home/andy/tmp/Au/top/protein.pdb'}
 
                 print("succesfully auto-generated topology")
 
@@ -384,7 +384,7 @@ def create_sim(fid,
                         # solvate returns 
                         # {'ndx': '/home/andy/tmp/Au/solvate/main.ndx', 
                         # 'mainselection': '"Protein"', 
-                        # 'struct': '/home/andy/tmp/Au/solvate/solvated.gro', 
+                        # 'struct': '/home/andy/tmp/Au/solvate/solvated.pdb', 
                         # 'qtot': 0})
                         print("auto solvation successfull")
             
@@ -407,7 +407,7 @@ def create_sim(fid,
                     # solvate returns 
                     # {'ndx': '/home/andy/tmp/Au/solvate/main.ndx', 
                     # 'mainselection': '"Protein"', 
-                    # 'struct': '/home/andy/tmp/Au/solvate/solvated.gro', 
+                    # 'struct': '/home/andy/tmp/Au/solvate/solvated.pdb', 
                     # 'qtot': 0})
                     print("auto solvation successfull")
             
@@ -415,7 +415,7 @@ def create_sim(fid,
         try:
             # make a fake 'System' object so we can test the subsystem factory.
             dummysys = None
-            with tempfile.NamedTemporaryFile(suffix=".gro") as f:  
+            with tempfile.NamedTemporaryFile(suffix=".pdb") as f:  
                 # EXTREMLY IMPORTANT to flush the file, 
                 # NamedTemporaryFile returns an OPEN file, and the array writes to this file, 
                 # so we need to flush it, as this file handle remains open. Then the MDAnalysis

@@ -117,7 +117,7 @@ class MDrunner(gromacs.run.MDrunner):
 
 
 def minimize(struct, top, top_includes, dirname=None,
-             minimize_output="em.gro", deffnm="em", mdrunner=MDrunner,
+             minimize_output="em.pdb", deffnm="em", mdrunner=MDrunner,
              mdp="em.mdp", **kwargs):
     """
     Energy minimize a system.
@@ -144,9 +144,9 @@ def minimize(struct, top, top_includes, dirname=None,
        *dirname*
           set up under directory dirname [em]
        *struct*
-          input structure (gro, pdb, ...) [solvate/ionized.gro]
+          input structure (gro, pdb, ...) [solvate/ionized.pdb]
        *output*
-          output structure (will be put under dirname) [em.gro]
+          output structure (will be put under dirname) [em.pdb]
        *deffnm*
           default name for mdrun-related files [em]
        *top*
@@ -171,7 +171,7 @@ def minimize(struct, top, top_includes, dirname=None,
         dirname = tempfile.mkdtemp(prefix="tmp." + deffnm + ".")
         logging.debug("created energy minimization dir {}".format(dirname))
 
-    struct = data_tofile(struct, "src.gro", dirname=dirname)
+    struct = data_tofile(struct, "src.pdb", dirname=dirname)
     top = data_tofile(top, "src.top", dirname=dirname)
 
 #    import pdb; pdb.set_trace()
@@ -212,7 +212,7 @@ def setup_md(struct, top, top_includes, deffnm="md", dirname=None, mdp="md_CHARM
        *dirname*
           set up under directory dirname [MD_POSRES]
        *struct*
-          input structure (gro, pdb, ...) [em/em.gro]
+          input structure (gro, pdb, ...) [em/em.pdb]
        *top*
           topology file [top/system.top]
        *mdp*
@@ -277,7 +277,7 @@ def setup_md(struct, top, top_includes, deffnm="md", dirname=None, mdp="md_CHARM
         dirname = tempfile.mkdtemp(prefix="tmp." + deffnm + ".")
         logging.debug("created md dir {}".format(dirname))
 
-    struct = data_tofile(struct, "src.gro", dirname=dirname)
+    struct = data_tofile(struct, "src.pdb", dirname=dirname)
     top = data_tofile(top, "src.top", dirname=dirname)
 
     logging.debug("top_includes: {}".format(top_includes))
@@ -322,7 +322,7 @@ def setup_md_debug(struct, top, top_includes, deffnm="md", dirname=None, mdp="md
        *dirname*
           set up under directory dirname [MD_POSRES]
        *struct*
-          input structure (gro, pdb, ...) [em/em.gro]
+          input structure (gro, pdb, ...) [em/em.pdb]
        *top*
           topology file [top/system.top]
        *mdp*
@@ -384,7 +384,7 @@ def setup_md_debug(struct, top, top_includes, deffnm="md", dirname=None, mdp="md
         dirname = tempfile.mkdtemp(prefix="tmp." + deffnm + ".")
         logging.debug("created md dir {}".format(dirname))
 
-    struct = data_tofile(struct, "src.gro", dirname=dirname)
+    struct = data_tofile(struct, "src.pdb", dirname=dirname)
     top = data_tofile(top, "src.top", dirname=dirname)
 
     logging.debug("top_includes: {}".format(top_includes))
@@ -427,7 +427,7 @@ def topology(struct, protein="protein", dirname="top", ff="charmm27", water="spc
     logging.info("autogenerating topology using pdb2gmx...")
     pdb2gmx_args = {"ff":ff, "water":water, "ignh":ignh}
     pdb2gmx_args.update(top_args)
-    struct = data_tofile(struct, "src.gro", dirname=dirname)
+    struct = data_tofile(struct, "src.pdb", dirname=dirname)
     result = gromacs.setup.topology(struct, protein, "system.top", dirname, **pdb2gmx_args)
     result["dirname"] = dirname
 
@@ -538,7 +538,7 @@ def solvate(struct, top, top_includes=None, box = None,
     if isinstance(struct, MDAnalysis.core.AtomGroup.Universe):
         sub = numpy.arange(len(struct.atoms))
 
-    struct = data_tofile(struct, "src.gro", dirname=dirname)
+    struct = data_tofile(struct, "src.pdb", dirname=dirname)
 
     if sub is None:
         u = MDAnalysis.Universe(struct)
@@ -614,13 +614,13 @@ def run_md(dirname, md_runner=MDrunner, **kwargs):
         if kwargs.has_key("c"):
             structs = kwargs["c"]
         else:
-            structs = kwargs["deffnm"] + ".gro"
+            structs = kwargs["deffnm"] + ".pdb"
             kwargs["c"] = structs
     elif kwargs.has_key["c"]:
         structs = kwargs["c"]
     else:
         # default name according to mdrun man
-        structs = "confout.gro"
+        structs = "confout.pdb"
 
     if kwargs.has_key("multi"):
         split = os.path.splitext(structs)
@@ -685,13 +685,13 @@ def run_md_debug(dirname, md_runner=MDrunner, **kwargs):
         if kwargs.has_key("c"):
             structs = kwargs["c"]
         else:
-            structs = kwargs["deffnm"] + ".gro"
+            structs = kwargs["deffnm"] + ".pdb"
             kwargs["c"] = structs
     elif kwargs.has_key("c"):
         structs = kwargs["c"]
     else:
         # default name according to mdrun man
-        structs = "confout.gro"
+        structs = "confout.pdb"
 
     if kwargs.has_key("multi"):
         split = os.path.splitext(structs)
@@ -729,10 +729,10 @@ def check_main_index(struct):
     """
     dirname = tempfile.mkdtemp()
     with gromacs.utilities.in_dir(dirname):
-        writer = MDAnalysis.Writer("src.gro")
+        writer = MDAnalysis.Writer("src.pdb")
         writer.write(struct)
         del writer
-        groups = gromacs.setup.make_main_index("src.gro")
+        groups = gromacs.setup.make_main_index("src.pdb")
 
     for g in groups:
         if g["name"] == "__main__":

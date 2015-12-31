@@ -18,7 +18,7 @@ Config Dictionary Specification
                  dirname: directory where top file is generated,
                  posres: name of position restraint include file,
                  and may also include any arguments accepted by pdb2gmx, see:
-                 http://manual.gromacs.org/current/online/pdb2gmx.html
+                 http://manual.pdbmacs.org/current/online/pdb2gmx.html
 
     md_nensemble: a optional number specifying how many
 
@@ -44,7 +44,7 @@ Config Dictionary Specification
     new files located in a timestep group.
 
     The "/files" group will contain at a minimum:
-        struct.gro
+        struct.pdb
         topol.top
         index.ndx
 
@@ -61,7 +61,7 @@ Config Dictionary Specification
     The "/timesteps" group has a series of timestep groups named 0, 1, ... N.
     Each one of these timestep subgroups contains the following data
 
-        struct.gro: this is typically a soft link to the struct.gro
+        struct.pdb: this is typically a soft link to the struct.pdb
         in "/src_files". This is only used as a way to store the non-coordinate
         attributes such as segment and residue info. The coordinates in this
         pdb are NOT USED to store coordinate info.
@@ -146,7 +146,7 @@ class Timestep(object):
     def create_universe(self):
         data = self._group[STRUCT_PDB][()]
 
-        with tempfile.NamedTemporaryFile(suffix=".gro") as f:
+        with tempfile.NamedTemporaryFile(suffix=".pdb") as f:
             # EXTREMLY IMPORTANT to flush the file,
             # NamedTemporaryFile returns an OPEN file, and the array writes to this file,
             # so we need to flush it, as this file handle remains open. Then the MDAnalysis
@@ -434,10 +434,10 @@ class System(object):
             logging.info("loading universe from most recent timestep of {}".format(last._group.name))
             return last.create_universe()
         else:
-            logging.info("_universe_from_hdf, struct.gro not in current frame, loading from src_files")
+            logging.info("_universe_from_hdf, struct.pdb not in current frame, loading from src_files")
             data = array(self.hdf[SRC_FILES + "/" + STRUCT_PDB])
 
-            with tempfile.NamedTemporaryFile(suffix=".gro") as f:
+            with tempfile.NamedTemporaryFile(suffix=".pdb") as f:
                 # EXTREMLY IMPORTANT to flush the file,
                 # NamedTemporaryFile returns an OPEN file, and the array writes to this file,
                 # so we need to flush it, as this file handle remains open. Then the MDAnalysis
@@ -598,7 +598,7 @@ class System(object):
 
         # save the universe to a tmp file to load back once the trajectories
         # are processed.
-        with tempfile.NamedTemporaryFile(suffix=".gro") as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".pdb") as tmp:
             writer = MDAnalysis.Writer(tmp.name)
             writer.write(self.universe)
             writer.close()
@@ -718,7 +718,7 @@ class System(object):
         if traj ends with 'pdb', the starting structure is saved as a pdb, otherwise,
         all the frames are written to a trajectory (trr). This is usefull for VMD
         where one could perform:
-            sys.tofile("somefile.gro")
+            sys.tofile("somefile.pdb")
             sys.tofile("somefile.trr"),
         then call vmd with these file args.
         """
@@ -742,7 +742,7 @@ class System(object):
 
     def visualize(self):
         dirname = tempfile.mkdtemp()
-        struct = dirname + "/struct.gro"
+        struct = dirname + "/struct.pdb"
         traj = dirname + "/traj.trr"
 
 
