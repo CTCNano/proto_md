@@ -214,9 +214,6 @@ def create_sim(fid,
                md_steps = 100,
                multi = 1,
                eq_steps = 10,
-               mn_args = DEFAULT_MN_ARGS,
-               eq_args = DEFAULT_EQ_ARGS,
-               md_args = DEFAULT_MD_ARGS,
                should_solvate = False,
                ndx=None,
                include_dirs=[],
@@ -338,15 +335,15 @@ def create_sim(fid,
 
         attr(SHOULD_SOLVATE, int, should_solvate)
         attr(MAINSELECTION, str, mainselection)
-	attr(TOP_ARGS, dict, kwargs['top_args'])
 	attr(CONCENTRATION, float, concentration)
 	attr(ANION, str, anion)
 	attr(CATION, str, cation)
 
-        attr(MN_ARGS, dict, mn_args)
-        attr(EQ_ARGS, dict, eq_args)
-        attr(MD_ARGS, dict, md_args)
-        
+	attr(MN_ARGS, dict, kwargs['mn_args'])
+        attr(EQ_ARGS, dict, kwargs['eq_args'])
+        attr(MD_ARGS, dict, kwargs['md_args'])
+        attr(TOP_ARGS, dict, kwargs['top_args'])        
+
         # try to create an integrator
         attr(INTEGRATOR, str, integrator)
         attr(INTEGRATOR_ARGS, list, integrator_args)

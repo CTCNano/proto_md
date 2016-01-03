@@ -90,7 +90,7 @@ class MDrunner(gromacs.run.MDrunner):
     .. _mpich2: http://www.mcs.anl.gov/research/projects/mpich2/
     """
     mdrun = "mdrun"
-    mpiexec = "" #"mpiexec"
+    mpiexec = "mpiexec"
 
     def mpicommand(self, *args, **kwargs):
         """Return a list of the mpi command portion of the commandline.

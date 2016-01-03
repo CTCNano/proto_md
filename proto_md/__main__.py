@@ -102,7 +102,7 @@ def make_parser():
     ap.add_argument("-cation", dest="cation", required=False, type=str, default='NA', 
                     help="cation name to use for ionization (if system is not neutral)")
 
-    ap.add_argument("-concentration", dest="concentration", required=False, type=float, default=0.1, 
+    ap.add_argument("-concentration", dest="concentration", required=False, type=float, default=0.15, 
                     help="concentration (in mol/L) of ions to use for ionization (if system is not neutral)")
     
     ap.add_argument("-cg_steps", default = 10,
@@ -236,6 +236,7 @@ def make_parser():
     ap.add_argument("sys", help="name of simulation file")
     ap.add_argument("-sol", action="store_true", help="auto solvate between steps")
     ap.add_argument("-debug", action="store_true", help="enable debug mode (save all simulation directories).")
+
     def mneq(sys,sol,debug) :
         config.set_tempdir(sys)
         if debug:
