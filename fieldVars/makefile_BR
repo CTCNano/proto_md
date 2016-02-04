@@ -1,0 +1,36 @@
+RM = rm
+CC = mpiCC
+CFlags = -Wall -g -std=c++0x -fPIC -O3
+LFlags = -shared -Wall -O3
+INCL1 = -I/N/u/ortgrp/Quarry/opt/include/python2.7/
+INCL2 = -I${PETSC_DIR}/include
+INCL3 = -I${PETSC_DIR}/${PETSC_ARCH}/include
+LIBS1 = -L${PETSC_DIR}/${PETSC_ARCH}/lib
+LIBS2 = -L/N/soft/cle4/openmpi/gnu/1.7.3a1/share/lib/
+LIB_BR = -L${HOME}/.local/lib
+INCL_BR1 = -I/N/u/ortgrp/BigRed2/.local/include/python2.7/
+INCL_BR2 = -I/.
+INCL_BR3 = -I${HOME}/.local/include
+INCL_BR4 = -I/N/u/ortgrp/BigRed2/.local/lib/python2.7/site-packages/numpy/core/include/
+BR2_PETSC = -lpetsc
+
+all: Wrapper.o Interface.o GhostGrid.o CoarseScale.o FineScale.o
+	${CC} ${LFlags} -o _FieldVars.so Interface.o Wrapper.o GhostGrid.o CoarseScale.o FineScale.o ${BR2_PETSC} ${LIB1S} ${LIBS2} ${LIB_BR}
+
+Interface.o: Interface.cpp
+	${CC} ${CFlags} -c Interface.cpp -o Interface.o -I/usr/include/python2.7 ${INCL_BR1} ${INCL_BR2} ${INCL_BR3} ${INCL_BR4}
+
+Wrapper.o: Wrapper.cpp
+	${CC} ${CFlags} -c Wrapper.cpp -o Wrapper.o -I/usr/include/python2.7 ${INCL_BR1} ${INCL_BR2} ${INCL_BR3} ${INCL_BR4}
+
+GhostGrid.o: GhostGrid.cpp
+	${CC} ${CFlags} -c GhostGrid.cpp -o GhostGrid.o -I/usr/include/python2.7 ${INCL_BR1} ${INCL_BR2} ${INCL_BR3} ${INCL_BR4}
+
+CoarseScale.o: CoarseScale.cpp
+	${CC} ${CFlags} -c CoarseScale.cpp -o CoarseScale.o -I/usr/include/python2.7 ${INCL_BR1} ${INCL_BR2} ${INCL_BR3} ${INCL_BR4}
+
+FineScale.o: FineScale.cpp
+	${CC} ${CFlags} -c FineScale.cpp -o FineScale.o -I/usr/include/python2.7 ${INCL_BR1} ${INCL_BR2} ${INCL_BR3} ${INCL_BR4}
+
+clean:
+	${RM} *.o

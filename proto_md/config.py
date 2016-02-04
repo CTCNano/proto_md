@@ -426,13 +426,13 @@ def create_sim(fid,
             # we have a fake sys now, can call subsys factory
             factory = util.get_class(subsystem_factory)
             print("created subsystem factory {}, attempting to create subsystems...".format(subsystem_factory))
-            test_ncgs, test_ss = factory(dummysys, subsystem_selects, *(subsystem_args))
+            test_ncgs, test_ss = factory(dummysys, subsystem_selects, **subsystem_args)
             
             print("subsystem factory appears to work, produces {} cg variables for each {} subsystems.".format(test_ncgs, len(test_ss)))
             
             conf[SUBSYSTEM_FACTORY] = subsystem_factory
             conf[SUBSYSTEM_SELECTS] = subsystem_selects
-            conf[SUBSYSTEM_ARGS] = subsystem_args
+            conf[SUBSYSTEM_ARGS] = subsystem_args.items()
 
         except Exception, e:
             print("error creating subsystem_class, {}".format(e))

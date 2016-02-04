@@ -209,8 +209,14 @@ class System(object):
         # load the subsystems
         # this list will remain constant as long as the topology remains constant.
         logging.info("creating subsystems")
+
         factory = util.get_class(self.config[SUBSYSTEM_FACTORY])
-        self.ncgs, self.subsystems = factory(self, self.config[SUBSYSTEM_SELECTS], *(self.config[SUBSYSTEM_ARGS].tolist()))
+
+	# This is imp to get around the HDF - dictionary incompatibility
+	subsystem_args_tuple = tuple([tuple(i) for i in self.config[SUBSYSTEM_ARGS]])
+	subsystem_args_dict = dict((x, eval(y)) for x, y in subsystem_args_tuple)
+
+        self.ncgs, self.subsystems = factory(self, self.config[SUBSYSTEM_SELECTS], **subsystem_args_dict)
         logging.debug("using {} cg variables for each {} subsystems".format(self.ncgs, len(self.subsystems)))
 
         # notify subsystems, we have a new universe
@@ -228,10 +234,6 @@ class System(object):
         self.cg_positions  = zeros((md_nensemble,nrs,md_nsteps,self.ncgs))
         self.cg_forces     = zeros((md_nensemble,nrs,md_nsteps,self.ncgs))
         self.cg_velocities = zeros((md_nensemble,nrs,md_nsteps,self.ncgs))
-
-        logging.info("pos {}".format(self.cg_positions.shape))
-        logging.info("frc {}".format(self.cg_forces.shape))
-        logging.info("vel {}".format(self.cg_velocities.shape))
 
     @property
     def struct(self):
@@ -311,7 +313,6 @@ class System(object):
         If only the last timestep is required, this approach is more effecient than
         building an entire list.
         """
-	print 'TIMESTEPS = ', TIMESTEPS
         timesteps = [int(k) for k in self.hdf[TIMESTEPS].keys()]
         if len(timesteps):
             return Timestep(self.hdf[TIMESTEPS + "/" + str(max(timesteps))])
@@ -562,6 +563,7 @@ class System(object):
 
         self.current_timestep.atomic_equilibriated_positions = self.universe.atoms.positions
         [s.equilibriated() for s in self.subsystems]
+
         return result
 
     def md(self, struct=None, top=None, sub=None, **args):
@@ -744,7 +746,6 @@ class System(object):
         dirname = tempfile.mkdtemp()
         struct = dirname + "/struct.gro"
         traj = dirname + "/traj.trr"
-
 
         self.tofile(struct)
         self.tofile(traj)

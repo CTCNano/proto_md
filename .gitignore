@@ -1,0 +1,7 @@
+*.pyc
+*.pyc~
+*.py~
+*.py.save
+*.a
+*.so
+test.py

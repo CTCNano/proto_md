@@ -213,10 +213,9 @@ def poly_indexes(kmax):
 
     return np.array(indices,'i')
 
-def SpaceWarpingSubsystemFactory(system, selects, *args):
+def SpaceWarpingSubsystemFactory(system, selects, **args):
     """
-    create a list of SWM Subsystems.
-
+    create a list of LegendreSubsystems.
     @param system: the system that the subsystem belongs to, this may be None
                    when the simulation file is created.
     @param selects: A list of MDAnalysis selection strings, one for each
@@ -229,18 +228,16 @@ def SpaceWarpingSubsystemFactory(system, selects, *args):
                  if args is [kmax, "resid unique"], an seperate subsystem is
                  created for each residue.
     """
-    kmax, freq = 0, 10
-    if len(args) == 1:
-        kmax = int(args[0])
-    elif len(args) == 2:
-        kmax = int(args[0])
-        toks = str(args[0]).split()
-        if len(toks) == 2 and toks[0].lower() == "resid" and toks[1].lower() == "unique":
-            groups = [system.universe.selectAtoms(s) for s in selects]
-            resids = [resid for g in groups for resid in g.resids()]
-            selects = ["resid " + str(resid) for resid in resids]
-    else:
-        raise ValueError("invalid args")
+    kmax, freq = 0, 1000
+
+    try:
+	kmax = args['kmax']
+    except:
+	raise ValueError("invalid subsystem args")
+
+    if 'freq' in args:
+	freq = args['freq']
+	logging.info('Ref structure will be updated every {} CG time steps'.format(freq))
 
     # test to see if the generated selects work
     [system.universe.selectAtoms(select) for select in selects]

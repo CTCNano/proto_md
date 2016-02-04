@@ -1,14 +1,14 @@
 #!/bin/sh
 python -m proto_md config \
-	   -o Output/output.hdf \
+	   -o output.hdf \
 	   -struct Struct/1PRT.gro \
 	   -temperature 310.0 \
 	   -subsystem_selects "protein" \
-	   -cg_steps 500 \
-	   -dt 0.1 \
-	   -mn_steps 5 \
-	   -eq_steps 100 \
-	   -md_steps 100 \
+	   -cg_steps 5 \
+	   -dt 1.0 \
+	   -mn_steps 200 \
+	   -eq_steps 500 \
+	   -md_steps 500 \
 	   -top Top/1PRT.top \
 	   -cation "NA" \
 	   -anion "CL" \
@@ -17,8 +17,5 @@ python -m proto_md config \
 	   -multi 1 \
 	   -integrator proto_md.integrators.FactorizationIntegrator \
 	   -subsystem_factory \
-	    proto_md.subsystems.SpaceWarpingSubsystemFactory \
-	   -subsystem_args 1 \
-	   -solvate
-
-python -m proto_md run Output/output.hdf -debug
+	    proto_md.subsystems.ContinuumSubsystemFactory \
+	   -subsystem_args "{'NumNodes_x':3, 'NumNodes_y':3, 'NumNodes_z':3, 'Resolution':30.0, 'NewIters':10, 'Threshold':1000, 'Scaling':10.0**-4}"

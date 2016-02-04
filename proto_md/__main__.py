@@ -69,8 +69,8 @@ def make_parser():
                     nargs="+", default=["not resname SOL"],
                     help="a list of MDAnalysis select statements, one for each subsystem.")
     
-    ap.add_argument("-subsystem_args", dest="subsystem_args", required=False, 
-                    nargs="+", default=[],
+    ap.add_argument("-subsystem_args", dest="subsystem_args", required=False, type=eval, 
+                    default={'kmax':0},
                     help="a list of additional arguments passed to the subsystem factory, "
                          "the first item of the list may be the string \'resid unique\', which "
                          "creates a separate subsystem for each residue. " 
