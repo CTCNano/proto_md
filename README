@@ -65,6 +65,7 @@ proto_md/subsystems: contains modules specific to various coarse-graining method
 proto_md/util: contains modules for reading and writng files to / from disk and hdf blobs
 proto_md/templates: contains GROMACS mdp config template files
 proto_md/integrators: contains modules for various multiscale integrators
+fieldVars: C++ code for the continuum field variables
 
 License
 =======
