@@ -308,21 +308,21 @@ def create_sim(fid,
         bbox = bbox[1,:] - bbox[0,:]
         
         # box should be at least 110% of atomic 
-        if all(box >= 1.1 * bbox):
-            # box is OK, center molecule in box
-            print("centering molecule in box, new center of mass will be {}".format(box / 2))
-            trans = box / 2 - universe.atoms.centerOfMass()
-            universe.atoms.translate(trans)
-            fd, centered_struct = tempfile.mkstemp(suffix=".gro")
-            writer = MDAnalysis.Writer(centered_struct)
-            struct = centered_struct
-            writer.write(universe)
-            writer.close()
-            del writer
-            os.close(fd)
-        else:
-            raise ValueError("The given box, {} needs to be at least 110% of the molecule extents, {}".
-                             format(box, bbox))
+        #if all(box >= 1.0 * bbox):
+        #    # box is OK, center molecule in box
+        #    print("centering molecule in box, new center of mass will be {}".format(box / 2))
+        #    trans = box / 2 - universe.atoms.centerOfMass()
+        #    universe.atoms.translate(trans)
+        #    fd, centered_struct = tempfile.mkstemp(suffix=".gro")
+        #    writer = MDAnalysis.Writer(centered_struct)
+        #    struct = centered_struct
+        #    writer.write(universe)
+        #    writer.close()
+        #    del writer
+        #    os.close(fd)
+        #else:
+        #    raise ValueError("The given box, {} needs to be at least 110% of the molecule extents, {}".
+        #                     format(box, bbox))
         
         attr(CG_STEPS, int, cg_steps)
         attr(DT, float, dt)
@@ -441,7 +441,7 @@ def create_sim(fid,
         hdf.create_group("timesteps")
         
         # clean up temp centered struct path
-        os.remove(centered_struct)
+        # os.remove(centered_struct)
         print("creation of simulation file {} complete".format(fid))
         
         

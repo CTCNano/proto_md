@@ -26,14 +26,9 @@ class FactorizationIntegrator(integrator.Integrator):
         # next mean: average over steps - results in a n subsystem x n_cg array
         # flatten(): makes a 1D array 
         # [:,np.newaxis]: makes a 1xN column vector.
-        avg_velocities = np.mean(np.mean(self.system.cg_velocities, axis = 0), axis = 1).flatten()[:,np.newaxis]
-        self.RHS.append(avg_velocities)
-        self.RHS.pop(0)
 
-        cg_translate = np.zeros(avg_velocities.shape)
-
-        for rhs in self.RHS:
-                if rhs is not None:
-                        cg_translate += rhs
-
+	avg_velocities = np.mean(np.mean(self.system.cg_velocities, axis = 0), axis = 1).flatten()[:,np.newaxis]
+        
+        cg_translate = self.system.dt * avg_velocities
+        
         self.system.translate(cg_translate)

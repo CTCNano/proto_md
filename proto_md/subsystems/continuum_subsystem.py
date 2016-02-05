@@ -82,9 +82,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
         for i in xrange(self.Newton_Partial):
             logging.info('Calling Newton iter {}'.format(i))
             tmp = self.CG + (i + 1.0) * dCG[:self.NumNodes()] / self.Newton_Partial
-            r = self.FineScale(self.atoms.positions, tmp)
-
-	    self.universe.atoms.set_positions(r)
+            self.atoms.positions = self.FineScale(self.atoms.positions, tmp)
 
     def frame(self):
         """ 
@@ -99,7 +97,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
 		CGv = np.zeros(self.nNodes)
 		CGf = np.zeros(self.nNodes)
 
-		CG[:self.NumNodes()], CG[:self.NumNodes()], CG[:self.NumNodes()] = self.ComputeCG_Pos(pos), self.ComputeCG_Vel(pos, vel), self.ComputeCG_For(pos, vel, forces)		
+		CG[:self.NumNodes()], CGv[:self.NumNodes()], CGf[:self.NumNodes()] = self.ComputeCG_Pos(pos), self.ComputeCG_Vel(pos, vel), self.ComputeCG_For(pos, vel, forces)		
 	else:
 	        CG, CGv, CGf = self.ComputeCG_Pos(pos), self.ComputeCG_Vel(pos, vel), self.ComputeCG_For(pos, vel, forces)
 
