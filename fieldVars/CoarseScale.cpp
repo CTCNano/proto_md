@@ -29,7 +29,7 @@ PetscScalar FieldVar::KernelFunction(const PetscScalar* const Coords, PetscInt m
 
 	dotProd = dotProd / pow(FieldVar::Resol, 2.0);
 
-	return mass * exp(-dotProd) / pow(FieldVar::Resol * sqrt(M_PI), 3.0);
+	return exp(-dotProd); // * mass / pow(FieldVar::Resol * sqrt(M_PI), 3.0);
 }
 
 vector<PetscScalar> FieldVar::ComputeFV(const PetscScalar* const Coords) {

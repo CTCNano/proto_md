@@ -244,7 +244,7 @@ PetscErrorCode& FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx
 
 		while(atomic_error >= FieldVar::Tol) {
 
-			if(Assemble && iters == 0)
+			//if(Assemble || iters == 0)
 				for(auto dim = 0; dim < FieldVar::Dim; dim++)
 					FieldVar::ierr = FieldVar::KernelJacobian(Coords_petsc, dim);
 
