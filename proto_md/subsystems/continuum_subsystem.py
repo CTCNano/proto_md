@@ -65,7 +65,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
 
 	self.universe = universe
 
-        self.CppFV = FV.FieldVar(self.atoms.positions, self.atoms.masses(), self.args)
+        self.CppFV = FV.FieldVar(self.atoms.positions, self.atoms.masses, self.args)
         self.COMM = self.CppFV.GetCOMM()
 
     def translate(self, dCG):
@@ -158,7 +158,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
 
 	CG = CG[:self.NumNodes()]
 
-        self.PetscError, Coords = self.CppFV.Py_FineGrain(CG, Coords[:,0], Coords[:,1], Coords[:,2], self.atoms.numberOfAtoms() * Coords.shape[1], self.Assemble)
+        self.PetscError, Coords = self.CppFV.Py_FineGrain(CG, Coords[:,0], Coords[:,1], Coords[:,2], self.atoms.n_atoms * Coords.shape[1], self.Assemble)
 
         return np.reshape(Coords, (Coords.shape[0]/3, 3))
 

@@ -127,9 +127,9 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         @return: a n_atom x 3array
         """
         NCG = CG.shape[0]/3
-        x = self.box[0] / 2.0 * np.dot(self.basis,CG[:NCG])
-        y = self.box[1] / 2.0 * np.dot(self.basis,CG[NCG:2*NCG])
-        z = self.box[2] / 2.0 * np.dot(self.basis,CG[2*NCG:3*NCG])
+        x = np.dot(self.basis,CG[:NCG])
+        y = np.dot(self.basis,CG[NCG:2*NCG])
+        z = np.dot(self.basis,CG[2*NCG:3*NCG])
 
         return np.array([x,y,z]).T
 
@@ -139,8 +139,8 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         CG = U^t * Mass * var
         var could be atomic positions or velocities
         """
-        Utw = self.basis.T * self.atoms.masses()
-        return 2.0 / self.box * np.dot(Utw,var) # - self.atoms.centerOfMass())
+        Utw = self.basis.T * self.atoms.masses
+        return np.dot(Utw,var)
         
     def ComputeCG_Vel(self,vel):
         """
@@ -148,16 +148,15 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         CG = U^t * Mass * var
         var could be atomic positions or velocities
         """
-        Utw = self.basis.T * self.atoms.masses()
-        #vel_c = np.dot(vel, self.atoms.masses()) / np.sum(self.atoms.masses())
-        return 2.0 / self.box * np.dot(Utw,vel)
+        Utw = self.basis.T * self.atoms.masses
+        return np.dot(Utw,vel)
 
     def ComputeCG_Forces(self, atomic_forces):
         """
         Computes CG forces = U^t * <f>
         for an ensemble average atomic force <f>
         """
-        return 2.0 / self.box *  np.dot(self.basis.T, atomic_forces)
+        return np.dot(self.basis.T, atomic_forces)
 
     def Construct_Basis(self,coords):
         """
@@ -166,9 +165,9 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         """
         logging.info('Performing QR decomposition ...')
         
-        ScaledPos = 2.0 * coords / self.box
+        ScaledPos = (coords - coords.mean()) / self.box
         # grab the masses, and make it a column vector
-        Masses = self.atoms.masses()[:,np.newaxis]
+        Masses = self.atoms.masses[:,np.newaxis]
         Basis = np.zeros([ScaledPos.shape[0], self.pindices.shape[0]],'f')
 
         for i in xrange(self.pindices.shape[0]):
