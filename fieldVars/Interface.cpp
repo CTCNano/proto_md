@@ -241,17 +241,18 @@ PetscErrorCode& FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx
 
 		Vec FV_vec = FieldVar::PetscVectorFromArray(FV, FV_DIM);
 		PetscInt iters = 0;
+		PetscScalar minFV;
 
 		while(atomic_error >= FieldVar::Tol) {
 
-			//if(Assemble || iters == 0)
+			if(Assemble || iters == 0)
 				for(auto dim = 0; dim < FieldVar::Dim; dim++)
 					FieldVar::ierr = FieldVar::KernelJacobian(Coords_petsc, dim);
 
-			//PetscScalar Scaling = max(FieldVar::Scaling / (iters*0.1 + 1.0), 0.1);
 			cons_error = FieldVar::ComputeLagrangeMulti(Coords_petsc, Multipliers, FV_vec, FieldVar::Scaling, iters, Assemble);
+			VecMin(FV_vec, NULL, &minFV);
+			cons_error /= minFV;
 
-			PetscScalar multi_norm;
 			atomic_error = .0;
 
 			for(auto dim = 0; dim < FieldVar::Dim; dim++) {
@@ -270,7 +271,7 @@ PetscErrorCode& FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx
 
 			iters++;
 			fp << FieldVar::GetTime() << ":INFO:Newton max atomic displacement: " << atomic_error <<
-				  ", and density error = " << cons_error << endl;
+				  ", and rel. density error = " << cons_error << endl;
 		}
 
 		fp.close();

@@ -232,11 +232,11 @@ PetscScalar FieldVar::ComputeLagrangeMulti(const Vec *const Coords, Vec Multipli
 	PetscScalar cons_error;
 	VecNorm(Cons, NORM_INFINITY, &cons_error);
 
-	//if(Assemble)
-	//	{
+	if(Assemble || new_iters == 0)
+		{
 			FieldVar::ierr = FieldVar::AssembleJacobian(Coords);
 			MatShift(FieldVar::Jacobian, Scaling);
-	//	}
+		}
 
 	//MatView(FieldVar::Jacobian, PETSC_VIEWER_STDOUT_WORLD);
 
