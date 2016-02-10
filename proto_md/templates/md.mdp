@@ -10,25 +10,19 @@
 ; ==================================================================
 
 include                  = -I. -I.. -I../top
-define                   =
 
 integrator               = md
 tinit                    = 0.0
 dt                       = 0.001
-nsteps                   = 100000000000
+nsteps                   = 200000
 
-nstxout                  = 1000
-nstvout                  = 1000
+nstxout                  = 20
+nstvout                  = 0
 nstfout                  = 0
 ; Output frequency for energies to log file and energy file
 nstlog                   = 1000
 nstenergy                = 1000
 nstcalcenergy            = 1000
-
-; Output frequency and precision for xtc file
-nstxtcout                = 0             ; no need for xtc output
-xtc-precision            = 1000             ; ignored
-xtc-grps		 = system
 
 comm-mode                = Linear
 nstcomm                  = 100
@@ -50,8 +44,9 @@ rlist                    = 1.4
 ; Method for doing electrostatics
 ; From the CHARMM docs (ewald.doc):
 ;   NBOND EWALD PMEWald KAPPa 0.34 ORDEr 6 CTOFNB 12.0 CUTNB 14.0
-coulombtype              = reaction-field
+coulombtype              = Cut-off
 rcoulomb                 = 1.4
+
 ; Method for doing Van der Waals
 ;   NBOND VATOM VSWI CTONNB 10.0 CTOFNB 12.0 CUTNB 14.0
 vdw-type                 = Switch
@@ -80,16 +75,16 @@ optimize_fft             = yes
 
 ; OPTIONS FOR WEAK COUPLING ALGORITHMS
 ; Temperature coupling
-tcoupl                   = vrescale
-tau_t                    = 1.0
+tcoupl                   = no
+tau_t                    = 0.5
 tc-grps                  = System
-ref_t                    = 310.0
+ref_t                    = 300.0
 
 ; Pressure coupling
 pcoupl                   = no       ; no pressure coupling
 pcoupltype               = isotropic ; ignored
 ; Time constant (ps), compressibility (1/bar) and reference P (bar)
-tau_p                    = 0.5
+tau_p                    = 1.0
 compressibility          = 4.5e-5
 ref_p                    = 1.0
 ; Scaling of reference coordinates, No, All or COM
@@ -99,7 +94,7 @@ andersen_seed            = -1
 
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen_vel                  = no
-gen-temp                 = 310.0
+gen-temp                 = 300.0
 gen_seed                 = -1
 
 ; Langevin dynamics
@@ -113,6 +108,4 @@ constraint-algorithm     = Lincs
 lincs-order              = 4
 lincs-iter               = 1
 
-cutoff-scheme = group
-freezegrps               = GRA
-freezedim                = Y Y Y
+cutoff-scheme		 = group

@@ -57,6 +57,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
         """
 
 	self.atoms = universe.selectAtoms(self.select)
+	self.atoms.set_masses(39.948)
 
         # check to see if atoms is valid
         if len(self.atoms) <= 0:
@@ -78,11 +79,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
         """
 
         logging.info('translating continuum SS ..')
-
-        for i in xrange(self.Newton_Partial):
-            logging.info('Calling Newton iter {}'.format(i))
-            tmp = self.CG + (i + 1.0) * dCG[:self.NumNodes()] / self.Newton_Partial
-            self.atoms.positions = self.FineScale(self.atoms.positions, tmp)
+        self.atoms.positions = self.FineScale(self.atoms.positions, self.CG +  dCG[:self.NumNodes()])
 
     def frame(self):
         """ 
