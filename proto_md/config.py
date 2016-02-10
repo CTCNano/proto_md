@@ -330,6 +330,10 @@ def create_sim(fid,
         attr(MN_STEPS, int, mn_steps)
         attr(MD_STEPS, int, md_steps)
         attr(MULTI, int, multi)
+	attr(NSTXOUT, int, kwargs['md_args']['nstxout'])
+	attr(NSTVOUT, int, kwargs['md_args']['nstvout'])
+	attr(NSTFOUT, int, kwargs['md_args']['nstfout'])	
+
         attr(EQ_STEPS, int, eq_steps)
 	attr(INCLUDE_MDP_DIRS, str, include_mdp_dirs)
 
