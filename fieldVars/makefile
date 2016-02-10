@@ -5,7 +5,7 @@ CFlags = -Wall -g -std=c++0x -fPIC -O3
 LFlags = -shared -Wall -O3
 INCL1 = -I${HOME}/.local/include
 INCL2 = -I/N/soft/rhel6/python/2.7.3/include/python2.7/
-INCL3 = -I/usr/lib/openmpi/include/
+INCL3 = -I/N/soft/rhel6/python/2.7.3/lib/python2.7/site-packages/numpy/core/include
 LIBS1 = -L${PETSC_DIR}/${PETSC_ARCH}/lib
 LIBS2 = -L${HOME}/.local/lib
 LIB_BR = -L/opt/cray/petsc/3.3.04/real/GNU/46/interlagos/lib
@@ -17,6 +17,7 @@ MPLIB = -L/N/soft/rhel6/openmpi/intel/shared/1.6.3/lib/
 
 all: Wrapper.o Interface.o GhostGrid.o CoarseScale.o FineScale.o
 	${CC} ${LFlags} -o _FieldVars.so Interface.o Wrapper.o GhostGrid.o CoarseScale.o FineScale.o -lpetsc ${LIB1S} ${LIBS2}
+	mv _FieldVars.so ../proto_md/subsystems
 
 Interface.o: Interface.cpp
 	${CC} ${CFlags} -c Interface.cpp -o Interface.o -I/usr/include/python2.7 ${INCL1} ${INCL2} ${INCL3}
