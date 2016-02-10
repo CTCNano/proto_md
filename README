@@ -17,20 +17,27 @@ GromacsWrapper - https://github.com/CTCNano/GromacsWrapper
 MDAnalysis - https://code.google.com/p/mdanalysis
 Numpy - http://www.numpy.org
 Scipy - http://www.scipy.org
-openMPI - http://www.open-mpi.org or MPICH  - https://www.mpich.org
+OpenMPI - http://www.open-mpi.org or MPICH  - https://www.mpich.org
 Gromacs - http://www.gromacs.org
 
 protoMD has been tested with:
 - Gromacs 4.6.x and 5.0.x
-- MDAnalysis 0.7.8
+- MDAnalysis 0.14.0
 
 Installation
 ============
-Installation uses python's setuptools. 
+Installation uses python's setuptools.
+
+Simply run form the cmd line:
 
 cd proto_md
 python setup.py build
 python setup.py install --user
+
+To install the continuum field variables:
+
+cd fieldVars
+make
 
 N.B. We recommend you install the GromacsWrapper from here:
 https://github.com/CTCNano/GromacsWrapper
@@ -65,7 +72,7 @@ proto_md/subsystems: contains modules specific to various coarse-graining method
 proto_md/util: contains modules for reading and writng files to / from disk and hdf blobs
 proto_md/templates: contains GROMACS mdp config template files
 proto_md/integrators: contains modules for various multiscale integrators
-fieldVars: C++ code for the continuum field variables
+proto_md/fieldVars: C++ code for an (optional) subsystem based on continuum field variables
 
 License
 =======
