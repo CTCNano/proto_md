@@ -34,8 +34,7 @@ cd proto_md
 python setup.py build
 python setup.py install --user
 
-To install protoMD with support for the field variables, you must first compile the shared library in fieldVars dir.
-On an x86/x86_64 machine, run from the cmd line:
+To install protoMD with support for the field variables, you must first compile the shared library in fieldVars dir. On an x86/x86_64 machine, run from the cmd line:
 
 cd fieldVars
 make
