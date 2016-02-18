@@ -1,3 +1,6 @@
+# This makefile is for IU's BigRed 2
+#! /bin/bash
+
 RM = rm
 CC = mpiCC
 CFlags = -Wall -g -std=c++0x -fPIC -O3
