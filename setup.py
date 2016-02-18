@@ -15,6 +15,8 @@ with open("README") as readme:
 
 # compile FVs. This is a bit hackish
 os.system('cd fieldVars; make')
+if not os.path.isfile('proto_md/subsystems/_FieldVars.so'):
+	print('Compilation of field variables failed. Proceeding with protoMD installation ...')	
 
 version = "0.0.1"
 
