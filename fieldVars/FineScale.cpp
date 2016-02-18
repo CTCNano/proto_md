@@ -41,8 +41,6 @@ PetscErrorCode FieldVar::computeKernel() {
         PetscErrorCode ierr;
        	PetscInt istart, iend;
 
-	//VecView(FieldVar::Coords, PETSC_VIEWER_STDOUT_SELF);
-
 	PetscScalar* CoordsTmp;
        	VecGetArray(FieldVar::Coords, &CoordsTmp);
 
