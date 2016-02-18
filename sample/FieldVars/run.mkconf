@@ -1,0 +1,22 @@
+#!/bin/sh
+
+python -m proto_md config \
+	   -o Argon.hdf \
+	   -struct Struct/Argon.gro \
+	   -temperature 70.0 \
+	   -subsystem_selects 'bynum 1:94469' 'bynum 94470:188938' \
+	   -cg_steps 100000 \
+	   -dt 5.0 \
+	   -md_args "{ 'mdp':'md_Argon.mdp', 'nstxout': 1000, 'nstvout': 1000, 'nstfout': 1000, 'dt':0.001, 'gen_vel': 'no' }" \
+	   -eq_args "{ 'mdp':'md_Argon.mdp', 'nstxout': 500, 'nstvout': 500, 'nstfout': 500, 'dt':0.001, 'gen_vel': 'no'}" \
+	   -mn_steps 100 \
+	   -eq_steps 500 \
+	   -md_steps 2000 \
+	   -top Top/Argon.top \
+	   -multi 1 \
+	   -I ../ \
+	   -integrator proto_md.integrators.FactorizationIntegrator \
+	   -subsystem_factory \
+	    proto_md.subsystems.ContinuumSubsystemFactory \
+	   -subsystem_args "{'NumNodes_x':5, 'NumNodes_y':3, 'NumNodes_z':3, 'Resolution':150.0, 'NewIters':10, 'Threshold':1000, 'Scaling':10.0**-10, 'Tol':0.05, 'FreqUpdate':10}" \
+	   -mainselection "Ar"

@@ -1,0 +1,65 @@
+;
+;	File '1PRT.top' was generated
+;	By user: sreifeis (1005692)
+;	On host: login1
+;	At date: Fri May 23 11:23:05 2014
+;
+;	This is a standalone topology file
+;
+;	It was generated using program:
+;	pdb2gmx_mpi - VERSION 4.6.3
+;
+;	Command line was:
+;	pdb2gmx_mpi -f 1PRT.pdb -o 1PRT_processed.gro -water spce -p 1PRT.top 
+;
+;	Force field was read from the standard Gromacs share directory.
+;
+
+; Include forcefield parameters
+#include "gromos43a1.ff/forcefield.itp"
+
+; Include chain topologies
+#include "1PRT_Protein_chain_A.itp"
+#include "1PRT_Protein_chain_B.itp"
+#include "1PRT_Protein_chain_C.itp"
+#include "1PRT_Protein_chain_D.itp"
+#include "1PRT_Protein_chain_E.itp"
+#include "1PRT_Protein_chain_F.itp"
+#include "1PRT_Protein_chain_G.itp"
+#include "1PRT_Protein_chain_H.itp"
+#include "1PRT_Protein_chain_I.itp"
+#include "1PRT_Protein_chain_J.itp"
+#include "1PRT_Protein_chain_K.itp"
+#include "1PRT_Protein_chain_L.itp"
+
+; Include water topology
+#include "gromos43a1.ff/spce.itp"
+
+#ifdef POSRES_WATER
+; Position restraint for each water oxygen
+[ position_restraints ]
+;  i funct       fcx        fcy        fcz
+   1    1       1000       1000       1000
+#endif
+
+; Include topology for ions
+#include "gromos43a1.ff/ions.itp"
+
+[ system ]
+; Name
+PERTUSSIS TOXIN (SUBUNIT S1); PERTUSSIS TOXIN (SUBUNIT S2); PERTUSSIS TOXIN (SUBUNIT S3); PERTUSSIS TOXIN (SUBUNIT S4); PERTUSSIS TOXIN (SUBUNIT S5) in water
+
+[ molecules ]
+; Compound        #mols
+Protein_chain_A     1
+Protein_chain_B     1
+Protein_chain_C     1
+Protein_chain_D     1
+Protein_chain_E     1
+Protein_chain_F     1
+Protein_chain_G     1
+Protein_chain_H     1
+Protein_chain_I     1
+Protein_chain_J     1
+Protein_chain_K     1
+Protein_chain_L     1

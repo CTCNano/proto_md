@@ -1,0 +1,41 @@
+;
+;	File 'topol.top' was generated
+;	By user: sreifeis (1005692)
+;	On host: login1
+;	At date: Fri Jan 15 14:14:05 2016
+;
+;	This is a standalone topology file
+;
+;	Created by:
+;	GROMACS:      gmx pdb2gmx, VERSION 5.0
+;	Executable:   /N/u/ortgrp/BigRed2//.local/bin/gmx_mpi
+;	Library dir:  /N/u/ortgrp/BigRed2//.local/share/gromacs/top
+;	Command line:
+;	  pdb2gmx_mpi -f test.gro
+;	Force field was read from the standard Gromacs share directory.
+;
+
+; Include forcefield parameters
+#include "gromos43a1.ff/forcefield.itp"
+
+[ moleculetype ]
+; Name            nrexcl
+Other               3
+
+[ atoms ]
+;   nr       type  resnr residue  atom   cgnr     charge       mass  typeB    chargeB      massB
+; residue 481 Ar  rtp AR   q  0.0
+     1         AR    481     Ar     Ar      1          0     39.948   ; qtot 0
+
+; Include Position restraint file
+#ifdef POSRES
+#include "posre.itp"
+#endif
+
+[ system ]
+; Name
+MDANALYSIS FRAME 0: Created by PrimitivePDBWriter
+
+[ molecules ]
+; Compound        #mols
+Other               188938
