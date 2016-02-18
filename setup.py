@@ -40,12 +40,13 @@ setup(name="proto_md",
       package_data={'proto_md': ['templates/*.sge', 'templates/*.pbs',  # template files
                                 'templates/*.ll', 'templates/*.sh',
                                 'templates/*.mdp', 'templates/*.cfg',
-                                'external/GridMAT-MD_v1.0.2/GridMAT-MD.pl']   # external bundled scripts
+                                'external/GridMAT-MD_v1.0.2/GridMAT-MD.pl',   # external bundled scripts
+				'subsystems/_FieldVars.so'] # FV shared lib
                     },
       install_requires = ['numpy>=1.0',
                           'scipy',        # numkit needs it
                           "MDAnalysis", 
 			  "GromacsWrapper",
                           ],              # basic package (w/o analysis)
-      zip_safe = True,
+      zip_safe = False,
 )
