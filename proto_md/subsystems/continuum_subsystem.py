@@ -44,7 +44,6 @@ class ContinuumSubsystem(subsystems.SubSystem):
     def __del__(self):
     	try:
             del self.COMM
-            del self.PetscError
     	except:
 	    pass
 
@@ -57,7 +56,9 @@ class ContinuumSubsystem(subsystems.SubSystem):
         """
 
 	self.atoms = universe.selectAtoms(self.select)
-	self.atoms.set_masses(39.948)
+
+	if self.atoms.masses.min() == 0:
+		self.atoms.set_masses(39.948)
 
         # check to see if atoms is valid
         if len(self.atoms) <= 0:
@@ -80,6 +81,8 @@ class ContinuumSubsystem(subsystems.SubSystem):
 
         logging.info('translating continuum SS ..')
         self.atoms.positions = self.FineScale(self.atoms.positions, self.CG +  dCG[:self.NumNodes()])
+
+	print 'COM of protein is {}'.format(self.atoms.centerOfMass())
 
     def frame(self):
         """ 
@@ -150,6 +153,16 @@ class ContinuumSubsystem(subsystems.SubSystem):
     def CoarseScale(self, Coords):
         return self.CppFV.Py_CoarseGrain(Coords)
     
+    def FineScaleVelo(self, Vels, Mom):
+        logging.info('fine graining ...')
+
+        Mom = Mom[:self.NumNodes()]
+
+        self.PetscError, Vels = self.CppFV.Py_FineGrainMom(Mom.copy(), Mom.copy(), Mom.copy(), Vels[:,0], Vels[:,1], Vels[:,2], self.atoms.n_atoms * Vels.shape[1])
+        Vels = np.reshape(Vels, (Vels.shape[0]/3, 3))
+
+	return Vels
+
     def FineScale(self, Coords, CG):
 	logging.info('fine graining ...')
 

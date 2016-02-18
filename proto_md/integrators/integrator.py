@@ -61,9 +61,16 @@ class Integrator(object):
         cg_positions, cg_forces and cg_velocities are populated with md values, 
         and these values are saved to the current_timestep. 
         """
+
+	# save velocities before energy min
+	velo = self.system.universe.atoms.velocities.copy()
+
         # first minimize in vacuum, in either case, 
         # fixes problems with langevin bond deformation.
         self.system.minimize()
+
+	self.system.universe.trajectory.ts.has_velocities = True
+	self.system.universe.atoms.set_velocities(velo)
         
         if self.system.should_solvate:
             with self.system.solvate() as sol:

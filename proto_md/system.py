@@ -614,9 +614,6 @@ class System(object):
                         for si, s in enumerate(self.subsystems):
                             pos,vel,frc = s.frame()
 		
-			    print 'velocities = '
-			    print vel
-
                             self.cg_positions [fi,si,tsi,:] = pos
                             self.cg_velocities[fi,si,tsi,:] = vel
                             self.cg_forces    [fi,si,tsi,:] = frc
