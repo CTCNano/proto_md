@@ -63,7 +63,7 @@ private:
 				// for serial computations.
   Vec Coords;  // Atomic coords vector [x;y;z]
   vector<Mat> JacobKernel;
-  Mat Jacobian;
+  Mat Jacobian, TransKernelTrans, KernelMatrix;
 
   vector<PetscScalar> FieldVars, // Field Variables (like density, pressure, stress tensor, etc.) that plays the role of the CG variable.
   	  	      FieldVars_Vel,
@@ -87,6 +87,7 @@ private:
   // Kernel functions
   PetscErrorCode KernelJacobian(const Vec *const Coords, const PetscInt &dim);
   PetscScalar KernelFunction(const PetscScalar* const Coords, PetscInt mass, const vector<PetscScalar> &GridPos);
+  PetscErrorCode computeKernel();
 
   // Data structures
   PetscErrorCode ConstructAtomList(const double* const);
@@ -96,7 +97,7 @@ private:
   Vec PetscVectorFromArray(const PetscScalar* const Array, const PetscInt length);
   Vec AdvancedAtomistic(const Vec &Coords_MD, const Vec &Multipliers, const PetscInt &dim);
   PetscErrorCode AssembleJacobian(const Vec *const Coords);
-  PetscScalar ComputeLagrangeMulti(const Vec *const Coords, Vec Multipliers, const Vec &FV, PetscScalar Scaling, PetscInt iters, int Assemble);
+  PetscScalar ComputeLagrangeMulti(const Vec *const Coords, Vec Multipliers, const Vec &FV, PetscScalar Scaling, int iters, int Assemble);
   Vec Constraints(const Vec *const Coords);
 
   string GetTime();
@@ -143,7 +144,9 @@ public:
   // External functions (to be called from python)
   PetscErrorCode Py_CoarseGrain(double* IN_ARRAY2, int DIM1, int DIM2);
   PetscErrorCode Py_UpdateGrid(double* IN_ARRAY2, int DIM1, int DIM2);
-  PetscErrorCode &Py_FineGrain(double* FV, int FV_DIM, double *x, int nx, double *y, int ny, double *z, int nz, double* COORDS_OUT, int NATOMS_BY_3, PyObject* Assemble);
+  PetscErrorCode Py_FineGrain(double* FV, int FV_DIM, double *x, int nx, double *y, int ny, double *z, int nz, double* COORDS_OUT, int NATOMS_BY_3, PyObject* Assemble);
+  PetscErrorCode Py_FineGrainMom(double* FV1, int DIM_FV1, double* FV2, int DIM_FV2, double* FV3, int DIM_FV3, double *vx, int vnx, double *vy,
+                                          int vny, double *vz, int vnz, double* VELS_OUT, int NATOMS_BY_3);
 
   void Py_ComputeCG_Pos(double *COORDS_IN, int NATOMS, int DIM, double *CG_OUT, int NUMCG);
   void Py_ComputeCG_Vel(double *COORDS_IN, int NATOMS1, int DIM1, double *VEL_IN, int NATOMS2, int DIM2, double *CG_OUT, int NUMCG);
@@ -155,6 +158,9 @@ public:
 	fp.close();
 
 	delete[] Box;
+	delete[] Coords_Local_x;
+	delete[] Coords_Local_y;
+	delete[] Coords_Local_z;
 
 	PetscFinalize();
   }

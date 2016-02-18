@@ -165,6 +165,13 @@ FieldVar::FieldVar(double* IN_ARRAY2, int DIM1, int DIM2, double* MASS, int DIM_
 
 			FieldVar::Coords = FieldVar::PetscVectorFromArray(IN_ARRAY2, DIM1*DIM2);
 			FieldVar::fp.open("proto.log", ios::out | ios::app);
+
+			// Allocate memory for local coords. 
+			// TODO: Must take local Natoms into account for parallelization!!!
+			Coords_Local_x = new PetscScalar[FieldVar::Natoms];
+			Coords_Local_y = new PetscScalar[FieldVar::Natoms];
+			Coords_Local_z = new PetscScalar[FieldVar::Natoms];
+			
 		}
   	}
   	else {
@@ -174,7 +181,10 @@ FieldVar::FieldVar(double* IN_ARRAY2, int DIM1, int DIM2, double* MASS, int DIM_
  }
 
 void FieldVar::Py_ComputeCG_Pos(double *COORDS_IN, int NATOMS, int DIM, double *CG_OUT, int NUMCG) {
+	std::cout << "COMPUTING FVS?? WTFF!! " << std::endl;
+
 	PetscFunctionBegin;
+
 	vector<PetscScalar> tmp = FieldVar::ComputeFV(COORDS_IN);
 
 	for(auto i = 0; i < tmp.size(); i++)
@@ -197,7 +207,112 @@ void FieldVar::Py_ComputeCG_For(double *COORDS_IN, int NATOMS1, int DIM1, double
 		CG_OUT[i] = tmp[i];
 }
 
-PetscErrorCode& FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx, double *y, int ny, double *z, int nz, double* COORDS_OUT, int NATOMS_BY_3, PyObject* Py_Assemble) {
+PetscErrorCode FieldVar::Py_FineGrainMom(double* FV1, int DIM_FV1, double* FV2, int DIM_FV2, double* FV3, int DIM_FV3, double *vx, int vnx, double *vy, 
+					  int vny, double *vz, int vnz, double* VELS_OUT, int NATOMS_BY_3) {
+
+        /*******************************************/
+        /***** FineGraining momenta using MSR *****/
+        /*****************************************/
+
+	PetscFunctionBegin;
+
+	ofstream fp("proto.log", ios::out | ios::app);
+
+	if(vnx != vny || vnx != vnz || vny != vnz) {
+                cerr << "Error in atomic velocities input for fine graining." << endl;
+                cerr << "Given dimensions: " << vnx << " " << vny << " " << vnz << endl;
+        }
+	else {
+		std::cout << "Initializing ... " << std::endl;
+
+              	// Maybe we should use VecCreateMPIWithArray here ???
+                vector<PetscScalar*> Vel_vec(FieldVar::Dim), FV(FieldVar::Dim);
+                Vel_vec[0] = vx;
+                Vel_vec[1] = vy;
+                Vel_vec[2] = vz;
+
+		FV[0] = FV1;
+		FV[1] = FV2;
+		FV[2] = FV3;
+
+		Vec *Vels_petsc = new Vec[FieldVar::Dim];
+
+                for(auto dim = 0; dim < FieldVar::Dim; dim++) {
+
+                        Vec vec_tmp = FieldVar::PetscVectorFromArray(Vel_vec[dim], FieldVar::Natoms);
+                        Vels_petsc[dim] = vec_tmp;
+                };
+
+
+		FieldVar::ierr = FieldVar::computeKernel(); CHKERRQ(FieldVar::ierr);
+		FieldVar::ierr = MatMatTransposeMult(FieldVar::KernelMatrix, FieldVar::KernelMatrix, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &(FieldVar::TransKernelTrans));
+		CHKERRQ(FieldVar::ierr);
+
+		fp << FieldVar::GetTime() << ":INFO:Computed Kernel Matrix Tranpose " << std::endl; 
+		
+		KSP ksp;
+       		FieldVar::ierr = KSPCreate(FieldVar::COMM, &ksp); CHKERRQ(FieldVar::ierr);
+
+		FieldVar::ierr = MatShift(FieldVar::TransKernelTrans, FieldVar::Scaling); CHKERRQ(FieldVar::ierr);
+
+        	FieldVar::ierr = KSPSetOperators(ksp, FieldVar::TransKernelTrans, FieldVar::TransKernelTrans); CHKERRQ(FieldVar::ierr);
+        	FieldVar::ierr = KSPSetType(ksp, KSPBCGS); CHKERRQ(FieldVar::ierr);
+        	FieldVar::ierr = KSPSetFromOptions(ksp); CHKERRQ(FieldVar::ierr);
+
+        	PC pc;
+        	FieldVar::ierr = KSPGetPC(ksp, &pc); CHKERRQ(FieldVar::ierr);
+        	PCSetType(pc, PCCHOLESKY); 
+		PetscScalar error;
+
+		fp << FieldVar::GetTime() << ":INFO:Solving for Lag multipliers " << std::endl;
+ 
+		for(auto dim = 0; dim < 1; dim++) {
+
+			Vec mom = FieldVar::PetscVectorFromArray(FV[dim], DIM_FV1); CHKERRQ(FieldVar::ierr);
+			FieldVar::ierr = VecScale(Vels_petsc[dim], -1.0); CHKERRQ(FieldVar::ierr);
+
+			FieldVar::ierr = MatMultAdd(FieldVar::KernelMatrix, Vels_petsc[dim], mom, mom); CHKERRQ(FieldVar::ierr);
+			FieldVar::ierr = VecScale(Vels_petsc[dim], -1.0); CHKERRQ(FieldVar::ierr);
+
+	        	FieldVar::ierr = KSPSolve(ksp, mom, mom); CHKERRQ(FieldVar::ierr);
+			//VecView(mom, PETSC_VIEWER_STDOUT_SELF);
+
+			FieldVar::ierr = MatMultTransposeAdd(FieldVar::KernelMatrix, mom, Vels_petsc[dim], Vels_petsc[dim]); CHKERRQ(FieldVar::ierr);
+		}
+
+                PetscScalar **Vels_local = new PetscScalar*[FieldVar::Dim];
+
+                for(auto dim = 0; dim < FieldVar::Dim; dim++)
+                        FieldVar::ierr = VecGetArray(Vels_petsc[dim], (Vels_local+dim));
+
+		CHKERRQ(FieldVar::ierr);
+
+                for(int i = 0; i < FieldVar::Natoms; i++) {
+
+                        VELS_OUT[i * FieldVar::Dim + 0] = Vels_local[0][i];
+                        VELS_OUT[i * FieldVar::Dim + 1] = Vels_local[1][i];
+                        VELS_OUT[i * FieldVar::Dim + 2] = Vels_local[2][i];
+
+                }
+
+                for(auto dim = 0; dim < FieldVar::Dim; dim++)
+                	FieldVar::ierr = VecDestroy(&Vels_petsc[dim]);
+
+		CHKERRQ(FieldVar::ierr);
+
+        	FieldVar::ierr = KSPDestroy(&ksp);
+		CHKERRQ(FieldVar::ierr);
+
+		delete[] Vels_petsc;
+
+	}
+
+	PetscFunctionReturn(ierr);
+}
+
+
+PetscErrorCode FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx, double *y, int ny, double *z, int nz, double* COORDS_OUT, int NATOMS_BY_3,
+					 PyObject* Py_Assemble) {
 	/**********************************************************************/
 	/***** FineGraining works via a numerical optimization algorithm *****/
 	/********************************************************************/
@@ -228,6 +343,7 @@ PetscErrorCode& FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx
 		VecCreateMPI(FieldVar::COMM, PETSC_DECIDE, FieldVar::AdjNumNodes, &Multipliers);
 
 		for(auto dim = 0; dim < FieldVar::Dim; dim++) {
+
 			Vec vec_tmp = FieldVar::PetscVectorFromArray(Coords_vec[dim], FieldVar::Natoms);
 			Coords_petsc[dim] = vec_tmp;
 		}
@@ -245,7 +361,7 @@ PetscErrorCode& FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx
 
 		while(atomic_error >= FieldVar::Tol) {
 
-			if(Assemble || iters == 0)
+			if(Assemble && iters == 0)
 				for(auto dim = 0; dim < FieldVar::Dim; dim++)
 					FieldVar::ierr = FieldVar::KernelJacobian(Coords_petsc, dim);
 
@@ -295,6 +411,7 @@ PetscErrorCode& FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx
 		VecDestroy(&FV_vec);
 		delete[] Coords_petsc;
 	}
+
 	PetscFunctionReturn(FieldVar::ierr);
 }
 

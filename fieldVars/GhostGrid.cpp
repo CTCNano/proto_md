@@ -38,10 +38,6 @@ PetscErrorCode FieldVar::ConstructGrid(const PetscInt &NumNodes) {
   PetscInt dim_x = 0, dim_y = 1, dim_z = 2;
   PetscScalar hx, hy, hz;
 
-
-  cout << FieldVar::Box[dim_x] << " " << FieldVar::Box[dim_y] << " " << FieldVar::Box[dim_z] << endl;
-  cout << FieldVar::Box[dim_x+FieldVar::Dim] << " " << FieldVar::Box[dim_y+FieldVar::Dim] << " " << FieldVar::Box[dim_z+FieldVar::Dim] << endl;
-
   for(auto i = 1; i < FieldVar::NumNodes_x + 1; i++)
 	for(auto j = 1; j < FieldVar::NumNodes_y + 1; j++)
 		for(auto k = 1; k < FieldVar::NumNodes_z + 1; k++) {
@@ -169,8 +165,9 @@ PetscErrorCode FieldVar::ConstructFVList(const double* const Coords) {
   for(auto i = 0; i < FieldVar::NumNodes_x + FieldVar::Grid_Neighbors_x; i++)
 	  for(auto j = 0; j < FieldVar::NumNodes_y + FieldVar::Grid_Neighbors_y; j++)
 		  for(auto k = 0; k < FieldVar::NumNodes_z + FieldVar::Grid_Neighbors_z; k++)
-			  if(FieldVar::GridID[i][j][k] >= 0)
+			  if(FieldVar::GridID[i][j][k] >= 0) {
 				  FieldVar::GridID[i][j][k] = count++;
+				}
 
   PetscFunctionReturn(ierr);
 }

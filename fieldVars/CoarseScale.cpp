@@ -29,8 +29,10 @@ PetscScalar FieldVar::KernelFunction(const PetscScalar* const Coords, PetscInt m
 
 	dotProd = dotProd / pow(FieldVar::Resol, 2.0);
 
-	return exp(-dotProd); // * mass / pow(FieldVar::Resol * sqrt(M_PI), 3.0);
+	return exp(-dotProd) * mass / pow(FieldVar::Resol * sqrt(M_PI), 3.0);
 }
+
+
 
 vector<PetscScalar> FieldVar::ComputeFV(const PetscScalar* const Coords) {
 
@@ -47,7 +49,7 @@ vector<PetscScalar> FieldVar::ComputeFV(const PetscScalar* const Coords) {
 		vector<PetscScalar> GridPos = FieldVar::Grid[i];
 
 		for(auto aa_it = it->begin(); aa_it != it->end(); aa_it++)
-			FieldVar::FieldVars[i] += FieldVar::KernelFunction(Coords+(FieldVar::Dim)*(*aa_it), FieldVar::Mass[*aa_it], GridPos);
+			FieldVar::FieldVars[i] +=  FieldVar::KernelFunction(Coords+(FieldVar::Dim)*(*aa_it), FieldVar::Mass[*aa_it], GridPos);
 
 		it++;
 	}
@@ -64,15 +66,18 @@ vector<PetscScalar> FieldVar::ComputeFV_Vel(const PetscScalar* const Coords, con
         auto it = FieldVar::FVList.begin(); // FVList contains atomic indices for each FV cell / node
 
         for(auto i = 0; i < FieldVar::AdjNumNodes; i++) {
-                FieldVar::FieldVars[i] = 0.f; // clear previously stored values
+                FieldVar::FieldVars_Vel[i] = 0.f; // clear previously stored values
 
                 vector<PetscScalar> GridPos = FieldVar::Grid[i];
 
                 for(auto aa_it = it->begin(); aa_it != it->end(); aa_it++) 
-                        FieldVar::FieldVars_Vel[i] += Vel[(FieldVar::Dim)*(*aa_it)+2] * FieldVar::KernelFunction(Coords+(FieldVar::Dim)*(*aa_it), FieldVar::Mass[*aa_it], GridPos);
+                        FieldVar::FieldVars_Vel[i] += Vel[(FieldVar::Dim)*(*aa_it)+2] * 
+							FieldVar::KernelFunction(Coords+(FieldVar::Dim)*(*aa_it), 
+										 FieldVar::Mass[*aa_it], GridPos);
 
                 it++;
         }
+
 	return FieldVar::FieldVars_Vel;
 }
 
@@ -118,6 +123,8 @@ PetscErrorCode FieldVar::DeleteJacobians() {
 	FieldVar::JacobKernel.clear(); // Very important for push pack to work when updating grid!!
 
 	FieldVar::ierr = MatDestroy(&(FieldVar::Jacobian));
+	FieldVar::ierr = MatDestroy(&(FieldVar::TransKernelTrans));
+	FieldVar::ierr = MatDestroy(&(FieldVar::KernelMatrix));
 
 	PetscFunctionReturn(FieldVar::ierr);
 }
@@ -141,6 +148,9 @@ PetscErrorCode FieldVar::SetupJacobians() {
 	for(auto it = FieldVar::FVList.begin(); it != FieldVar::FVList.end(); it++)
 		nnz[count++] = it->size();
 
+
+	// why did I opt for constructing NCG x Natom matrices here??? 
+
 	for(auto d = 0; d < FieldVar::Dim; d++) {
 		Mat Mat_tmp;
 		FieldVar::ierr = MatCreate(FieldVar::COMM, &Mat_tmp);
@@ -150,6 +160,11 @@ PetscErrorCode FieldVar::SetupJacobians() {
 		FieldVar::JacobKernel.push_back(Mat_tmp);
 		//MatView(FieldVar::JacobKernel[d], PETSC_VIEWER_STDOUT_SELF);
 	}
+
+    	ierr = FieldVar::ierr = MatCreate(FieldVar::COMM, &(FieldVar::KernelMatrix));
+        ierr = MatSetSizes(FieldVar::KernelMatrix, PETSC_DECIDE, PETSC_DECIDE, FieldVar::AdjNumNodes, FieldVar::Natoms);
+        ierr = MatSetType(FieldVar::KernelMatrix, MATSEQAIJ);
+	MatSeqAIJSetPreallocation(KernelMatrix, 0, nnz);
 
 	delete[] nnz;
 
@@ -183,6 +198,10 @@ PetscErrorCode FieldVar::SetupJacobians() {
 	MatSetSizes(FieldVar::Jacobian, PETSC_DECIDE, PETSC_DECIDE, FieldVar::AdjNumNodes, FieldVar::AdjNumNodes);
 	MatSetType(FieldVar::Jacobian, MATMPIAIJ);
 	MatMPIAIJSetPreallocation(FieldVar::Jacobian, 0, nnz, 0, nnz);
+
+	ierr = FieldVar::ierr = MatCreate(FieldVar::COMM, &(FieldVar::TransKernelTrans));
+        ierr = MatSetSizes(FieldVar::TransKernelTrans, PETSC_DECIDE, PETSC_DECIDE, FieldVar::AdjNumNodes, FieldVar::AdjNumNodes);
+        ierr = MatSetType(FieldVar::TransKernelTrans, MATSEQAIJ);
 
 	PetscFunctionReturn(FieldVar::ierr);
 }

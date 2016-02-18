@@ -17,6 +17,14 @@ import_array();
 %apply (double *IN_ARRAY1, int DIM1) {(double *y, int ny)};
 %apply (double *IN_ARRAY1, int DIM1) {(double *z, int nz)};
 
+%apply (double *ARGOUT_ARRAY1, int DIM1) {(double *VELS_OUT, int NATOMS_BY_3)};
+%apply (double *IN_ARRAY1, int DIM1) {(double *FV1, int DIM_FV1)};
+%apply (double *IN_ARRAY1, int DIM1) {(double *FV2, int DIM_FV2)};
+%apply (double *IN_ARRAY1, int DIM1) {(double *FV3, int DIM_FV3)};
+%apply (double *IN_ARRAY1, int DIM1) {(double *vx, int vnx)};
+%apply (double *IN_ARRAY1, int DIM1) {(double *vy, int vny)};
+%apply (double *IN_ARRAY1, int DIM1) {(double *vz, int vnz)};
+
 %apply (double *ARGOUT_ARRAY1, int DIM1) {(double *CG_OUT, int NUMCG)};
 %apply (double *IN_ARRAY2    , int DIM1, int DIM2) {(double *COORDS_IN , int NATOMS, int DIM)}; 
 

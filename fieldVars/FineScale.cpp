@@ -23,6 +23,68 @@
 
 #include "Interface.h"
 
+PetscErrorCode FieldVar::computeKernel() {
+
+        /******************************************************************************/
+        /******** Construct the transpose of the Jacobian of the kernel function *****/
+        /************ The size of the Jacobian is Natoms x N_CG  ********************/
+        /***************************************************************************/
+
+        /* The kernel Jacobian is NOT initialized to zero every time it is updated
+        *  because the nnz entries are INSERTED at the same location every time.
+        */
+
+        PetscFunctionBegin;
+
+        FieldVar::fp << FieldVar::GetTime() << ":INFO:Computing Kernel matrix" << endl;
+
+        PetscErrorCode ierr;
+       	PetscInt istart, iend;
+
+	//VecView(FieldVar::Coords, PETSC_VIEWER_STDOUT_SELF);
+
+	PetscScalar* CoordsTmp;
+       	VecGetArray(FieldVar::Coords, &CoordsTmp);
+
+	for(auto i = 0; i < FieldVar::Natoms; i++) {
+
+		FieldVar::Coords_Local_x[i] = CoordsTmp[i*(FieldVar::Dim)]; 
+        	FieldVar::Coords_Local_y[i] = CoordsTmp[i*(FieldVar::Dim)+1];
+       		FieldVar::Coords_Local_z[i] = CoordsTmp[i*(FieldVar::Dim)+2];
+	}
+
+
+       	MatGetOwnershipRange(FieldVar::KernelMatrix, &istart, &iend);
+
+        for(auto i = istart; i < iend; i++) {
+
+                PetscScalar *values = new PetscScalar[FieldVar::FVList[i].size()];
+                PetscInt *Indices = new PetscInt[FieldVar::FVList[i].size()];
+                PetscInt count = 0;
+
+                for(auto atom = FieldVar::FVList[i].begin(); atom != FieldVar::FVList[i].end(); atom++) {
+
+                        vector<PetscScalar> GridPos = FieldVar::Grid[i];
+                        const PetscScalar r[] = {FieldVar::Coords_Local_x[*atom], FieldVar::Coords_Local_y[*atom], FieldVar::Coords_Local_z[*atom]};
+                        values[count] = FieldVar::KernelFunction(r, FieldVar::Mass[*atom], GridPos);
+                        Indices[count++] = (*atom);
+
+                }
+
+                ierr = MatSetValues(FieldVar::KernelMatrix, 1, &i, FieldVar::FVList[i].size(), Indices, values, INSERT_VALUES); CHKERRQ(ierr);
+                delete[] values;
+                delete[] Indices;
+        }
+
+	ierr = MatAssemblyBegin(FieldVar::KernelMatrix, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+        ierr = MatAssemblyEnd(FieldVar::KernelMatrix, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
+
+	VecRestoreArray(FieldVar::Coords, &CoordsTmp);
+
+        PetscFunctionReturn(ierr);
+
+}
+
 PetscErrorCode FieldVar::KernelJacobian(const Vec* const Coords, const PetscInt &dim) {
 
 	/******************************************************************************/
@@ -221,7 +283,7 @@ Vec FieldVar::Constraints(const Vec *const Coords) {
 	PetscFunctionReturn(Cons);
 }
 
-PetscScalar FieldVar::ComputeLagrangeMulti(const Vec *const Coords, Vec Multipliers, const Vec &FV, PetscScalar Scaling, PetscInt new_iters, int Assemble) {
+PetscScalar FieldVar::ComputeLagrangeMulti(const Vec *const Coords, Vec Multipliers, const Vec &FV, PetscScalar Scaling, int iters, int Assemble) {
 	PetscFunctionBegin;
 
 	Vec Cons = FieldVar::Constraints(Coords);
@@ -232,18 +294,17 @@ PetscScalar FieldVar::ComputeLagrangeMulti(const Vec *const Coords, Vec Multipli
 	PetscScalar cons_error;
 	VecNorm(Cons, NORM_INFINITY, &cons_error);
 
-	if(Assemble || new_iters == 0)
-		{
+	if(Assemble && iters == 0) {
+
 			FieldVar::ierr = FieldVar::AssembleJacobian(Coords);
 			MatShift(FieldVar::Jacobian, Scaling);
-		}
+	}
 
 	//MatView(FieldVar::Jacobian, PETSC_VIEWER_STDOUT_WORLD);
 
 	FieldVar::fp << FieldVar::GetTime() << ":INFO:Calling KSP solver " << endl;
 
 	KSP ksp;
-	PetscInt iters;
 	KSPCreate(FieldVar::COMM, &ksp);
 
 	KSPSetOperators(ksp, FieldVar::Jacobian, FieldVar::Jacobian); // SAME_PRECONDITIONER);
