@@ -4,6 +4,7 @@
 # setup.py originally boosted from Oliver Beckstein's Gromacs Wrapper 
 #
 from __future__ import with_statement
+import os
 
 from ez_setup import use_setuptools
 use_setuptools()
@@ -12,6 +13,10 @@ from setuptools import setup, find_packages
 with open("README") as readme:
     long_description = readme.read()
 
+# compile FVs. This is a bit hackish
+os.system('cd fieldVars')
+os.system('make')
+os.system('cd ..')
 
 version = "0.0.1"
 
