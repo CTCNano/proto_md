@@ -28,16 +28,20 @@ Installation
 ============
 Installation uses python's setuptools.
 
-Simply run form the cmd line:
+To install protoMD without field variables, run from the cmd line:
 
 cd proto_md
 python setup.py build
 python setup.py install --user
 
-To install the continuum field variables:
+To install protoMD with support for the field variables, you must first compile the shared library in fieldVars dir.
+On an x86/x86_64 machine, run from the cmd line:
 
 cd fieldVars
 make
+cd ..
+python setup.py build
+python setup.py install --user
 
 N.B. We recommend you install the GromacsWrapper from here:
 https://github.com/CTCNano/GromacsWrapper
