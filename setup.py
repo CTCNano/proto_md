@@ -14,9 +14,7 @@ with open("README") as readme:
     long_description = readme.read()
 
 # compile FVs. This is a bit hackish
-os.system('cd fieldVars')
-os.system('make')
-os.system('cd ..')
+os.system('cd fieldVars; make')
 
 version = "0.0.1"
 
