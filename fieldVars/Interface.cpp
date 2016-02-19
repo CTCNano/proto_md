@@ -181,7 +181,6 @@ FieldVar::FieldVar(double* IN_ARRAY2, int DIM1, int DIM2, double* MASS, int DIM_
  }
 
 void FieldVar::Py_ComputeCG_Pos(double *COORDS_IN, int NATOMS, int DIM, double *CG_OUT, int NUMCG) {
-	std::cout << "COMPUTING FVS?? WTFF!! " << std::endl;
 
 	PetscFunctionBegin;
 
