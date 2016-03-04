@@ -139,7 +139,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         """
         Utw = self.basis.T * self.atoms.masses()
 
-        cg = solve(np.dot(Utw, self.basis), np.dot(Utw,pos - self.atoms.centerOfMass())
+        cg = solve(np.dot(Utw, self.basis), np.dot(Utw,pos)
 
 	return cg
         
@@ -184,15 +184,6 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
             basis[:,i] = px * py * pz
 
         return basis
-
-def QR_Decomp(V):
-    """
-    Performs QR decomposition on a matrix V to produce an orthonormalized
-    matrix Q..
-    """
-    Q,R = qr(V, mode='economic')
-
-    return Q
 
 def poly_indexes(kmax):
     """
