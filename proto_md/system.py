@@ -28,7 +28,7 @@ Config Dictionary Specification
                        (I know, this is a probably not the best key name, but this is
                         the argname that mdrun takes, so used for consistency)
 
-    "equilibriate":{"nsteps":1000},
+    "equilibrate":{"nsteps":1000},
 
     @group hdf file structure:
     All state variables of the system are saved in the hdf file, this is usefull for
@@ -99,7 +99,7 @@ class Timestep(object):
     the group and provides properties to access the values.
     """
     ATOMIC_MINIMIZED_POSITIONS = "atomic_minimized_positions"
-    ATOMIC_EQUILIBRIATED_POSITIONS = "atomic_equilibriated_positions"
+    ATOMIC_EQUILIBRATED_POSITIONS = "atomic_equilibrated_positions"
     ATOMIC_STARTING_POSITIONS = "atomic_starting_positions"
     ATOMIC_FINAL_POSITIONS = "atomic_final_positions"
     TIMESTEP_BEGIN = "timestep_begin"
@@ -126,7 +126,7 @@ class Timestep(object):
     def __init__(self, group):
         self._group = group
         self.__create_property(Timestep.ATOMIC_MINIMIZED_POSITIONS)
-        self.__create_property(Timestep.ATOMIC_EQUILIBRIATED_POSITIONS)
+        self.__create_property(Timestep.ATOMIC_EQUILIBRATED_POSITIONS)
         self.__create_property(Timestep.ATOMIC_STARTING_POSITIONS)
         self.__create_property(Timestep.ATOMIC_FINAL_POSITIONS)
         self.__create_property(Timestep.TIMESTEP_END)
@@ -472,19 +472,19 @@ class System(object):
 
         self.current_timestep.atomic_final_positions = self.universe.atoms.positions
 
-    def setup_equilibriate(self, struct=None, top=None):
+    def setup_equilibrate(self, struct=None, top=None):
         """
-        setup an equilibriation md run using the contents of the universe, but do not actually run it.
+        setup an equilibration md run using the contents of the universe, but do not actually run it.
 
-        @return an MDManager object loaded with the trr to run an equilibriation.
+        @return an MDManager object loaded with the trr to run an equilibration.
         """
 
         if struct is None or top is None:
             struct = self.universe
             top = self.top
-            logging.info("setting up equilibriation for self.universe")
+            logging.info("setting up equilibration for self.universe")
         else:
-            logging.info("setting up equilibriation for solvated struct, top")
+            logging.info("setting up equilibration for solvated struct, top")
 
 	eq_args = self.eq_args
 	eq_args['ref_t'] = self.config[TEMPERATURE]
@@ -500,9 +500,9 @@ class System(object):
 
     def setup_md(self, struct=None, top=None):
         """
-        setup an equilibriation md run using the contents of the universe, but do not actually run it.
+        setup an equilibration md run using the contents of the universe, but do not actually run it.
 
-        @return an MDManager object loaded with the trr to run an equilibriation.
+        @return an MDManager object loaded with the trr to run an equilibration.
         """
         logging.debug("struct = {}, top = {}".format(struct, top ))
 
@@ -526,17 +526,17 @@ class System(object):
                                mainselection=self.mainselection, \
                                **md_args)
 
-    def equilibriate(self, struct=None, top=None, sub=None, **args):
+    def equilibrate(self, struct=None, top=None, sub=None, **args):
         """
-        Equilibriates (thermalizes) the structure stored in self.universe.
+        Equilibrates (thermalizes) the structure stored in self.universe.
 
-        takes the universe structure, inputs it to md, performs an equilibriation run, and
-        read the result back into the universe. The equilibriated atomic state can then
+        takes the universe structure, inputs it to md, performs an equilibration run, and
+        read the result back into the universe. The equilibrated atomic state can then
         be used at the starting state the md sampling run, and for the langevin step.
 
         The MD is typically performed with position restraints on the protein.
 
-        The equilibriated position are also written to the current_timestep.
+        The equilibrated position are also written to the current_timestep.
 
         @precondition: self.universe contains an atomic state.
         @postcondition: self.universe now contains an equilbriated state.
@@ -549,20 +549,20 @@ class System(object):
         result = None
 
         if struct is None or top is None:
-            logging.info("performing equilibriation for self.universe")
-            with self.setup_equilibriate() as eqsetup:
+            logging.info("performing equilibration for self.universe")
+            with self.setup_equilibrate() as eqsetup:
                 mdres = md.run_md(eqsetup.dirname, **eqsetup)
                 self.universe.load_new(mdres.structs[0])
         else:
-            logging.info("performing equilibriation for solvated struct, top")
-            result = self.setup_equilibriate(struct, top)
+            logging.info("performing equilibration for solvated struct, top")
+            result = self.setup_equilibrate(struct, top)
             mdres = md.run_md(result.dirname, **result)
             result["struct"] = mdres.structs[0]
             result["sub"] = sub
             self.universe.atoms.positions = util.stripped_positions(mdres.structs[0], sub)
 
-        self.current_timestep.atomic_equilibriated_positions = self.universe.atoms.positions
-        [s.equilibriated() for s in self.subsystems]
+        self.current_timestep.atomic_equilibrated_positions = self.universe.atoms.positions
+        [s.equilibrated() for s in self.subsystems]
 
         return result
 
