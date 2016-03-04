@@ -71,23 +71,19 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         # call some stuff on the atomGroup to see if its valid
         self.atoms.bbox()
 
-    def ComputeResiduals(self,CG):
-        return self.EqAtomPos - (self.ComputeCGInv(CG)) # + self.atoms.centerOfMass())
-
     def frame(self):
         """
         Returns a 3 tuple of CG variables, each one is a row vector of size n_cg
         """
+        cg = self.computeCG(self.atoms.positions)
+        cgVel = self.computeCGVel(self.atoms.velocities())
+        cgFor = self.computeCGForces(self.atoms.forces)
 
-        CG = self.ComputeCG(self.atoms.positions)
-        CG_Vel = self.ComputeCG_Vel(self.atoms.velocities)
-        CG_For = self.ComputeCG_Forces(self.atoms.forces)
+        cg = np.reshape(cg.T, (cg.shape[0]*cg.shape[1]))
+        cgVel = np.reshape(cgVel.T, (cgVel.shape[0]*cgVel.shape[1]))
+        cgFor = np.reshape(cgFor.T, (cgFor.shape[0]*cgFor.shape[1]))
 
-        CG = np.reshape(CG.T,(CG.shape[0]*CG.shape[1]))
-        CG_Vel = np.reshape(CG_Vel.T,(CG_Vel.shape[0]*CG_Vel.shape[1]))
-        CG_For = np.reshape(CG_For.T,(CG_For.shape[0]*CG_For.shape[1]))
-
-        return (CG,CG_Vel,CG_For)
+        return (cg, cgVel, cgFor)
 
     def translate(self, dCG):
         """
@@ -97,27 +93,27 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
 
         @param CG: a length N_cg 1D array.
         """
-        self.residuals = self.ComputeResiduals(self.CG)
-        self.atoms.positions = self.ComputeCGInv(self.CG + dCG) + self.residuals #+ self.atoms.centerOfMass()
-        # or self.atoms.positions += self.ComputeCGInv(dCG)
+        self.atoms.positions += self.computeCGInv(dCG)
 
     def minimized(self):
         pass
 
-    def equilibriated(self):
+    def md(self):
+    	self.cgStep += 1
+    	
+    def equilibrated(self):
         """
         this is called just after the structure is equilibriated, this is the starting struct
         for the MD runs, this is to calculate basis.
         """
         if self.CG_step%self.Freq_Update == 0:
-            boxboundary = self.atoms.bbox()
-            self.box = (boxboundary[1,:] - boxboundary[0,:]) * 0.5
-            self.basis = self.Construct_Basis(self.atoms.positions - self.atoms.centerOfMass())  # Update this every CG step for now
+	    logging.info('Updating ref structure and constructing new basis functions...')
+	    boxboundary = self.atoms.bbox()
+	    self.box = (boxboundary[1,:] - boxboundary[0,:]) * 1.1 # 110% of the macromolecular box
 
-        CG = self.ComputeCG(self.atoms.positions)
-        self.CG = np.reshape(CG.T,(CG.shape[0]*CG.shape[1]))
-        self.EqAtomPos = self.atoms.positions
-        self.CG_step += 1
+            self.basis = self.Construct_Basis(self.atoms.positions - self.atoms.centerOfMass())
+	    self.ref_coords = self.atoms.positions.copy()
+	    self.ref_com = self.atoms.centerOfMass()
 
     def ComputeCGInv(self,CG):
         """
@@ -126,62 +122,67 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         @param CG: 3*n_cg x 1 array
         @return: a n_atom x 3array
         """
-        NCG = CG.shape[0]/3
-        x = np.dot(self.basis,CG[:NCG])
-        y = np.dot(self.basis,CG[NCG:2*NCG])
-        z = np.dot(self.basis,CG[2*NCG:3*NCG])
+        nCG = cg.shape[0]/3
 
-        return np.array([x,y,z]).T
+        x = np.dot(self.basis, cg[:nCG])
+        y = np.dot(self.basis, cg[nCG:2*nCG])
+        z = np.dot(self.basis, cg[2*nCG:3*nCG])
 
-    def ComputeCG(self,var):
+	return np.array([x,y,z]).T
+
+    def ComputeCG(self, pos):
         """
         Computes CG momenta or positions
         CG = U^t * Mass * var
         var could be atomic positions or velocities
         """
-        Utw = self.basis.T * self.atoms.masses
-        return np.dot(Utw,var)
+        Utw = self.basis.T * self.atoms.masses()
+
+        cg = solve(np.dot(Utw, self.basis), np.dot(Utw,pos - self.atoms.centerOfMass())
+
+	return cg
         
-    def ComputeCG_Vel(self,vel):
+    def ComputeCG_Vel(self, vel):
         """
         Computes CG momenta or positions
         CG = U^t * Mass * var
         var could be atomic positions or velocities
         """
-        Utw = self.basis.T * self.atoms.masses
-        return np.dot(Utw,vel)
+        Utw = self.basis.T * self.atoms.masses()	
+        vel = solve(np.dot(Utw, self.basis), np.dot(Utw,vel))
+
+	return vel
 
     def ComputeCG_Forces(self, atomic_forces):
         """
         Computes CG forces = U^t * <f>
         for an ensemble average atomic force <f>
         """
-        return np.dot(self.basis.T, atomic_forces)
+        Utw = self.basis.T * self.atoms.masses()
+
+        return solve(np.dot(Utw, self.basis), np.dot(Utw, forces))
 
     def Construct_Basis(self,coords):
         """
         Constructs a matrix of orthonormalized legendre basis functions
         of size Natoms x NCG.
         """
-        logging.info('Performing QR decomposition ...')
-        
-        ScaledPos = (coords - coords.mean()) / self.box
+        logging.info('Constructing basis ...')
+
+	# normalize coords to [-1,1]        
+        scaledPos = (coords - coords.mean(axis=0)) / self.box
+
         # grab the masses, and make it a column vector
-        Masses = self.atoms.masses[:,np.newaxis]
-        Basis = np.zeros([ScaledPos.shape[0], self.pindices.shape[0]],'f')
+        basis = np.zeros([scaledPos.shape[0], self.pindices.shape[0]],'f')
 
         for i in xrange(self.pindices.shape[0]):
             k1, k2, k3 = self.pindices[i,:]
-            px = legendre(k1)(ScaledPos[:,0])
-            py = legendre(k2)(ScaledPos[:,1])
-            pz = legendre(k3)(ScaledPos[:,2])
-            Basis[:,i] = px * py * pz
+            px = legendre(k1)(scaledPos[:,0])
+            py = legendre(k2)(scaledPos[:,1])
+            pz = legendre(k3)(scaledPos[:,2])
+            basis[:,i] = px * py * pz
 
-        WBasis = Basis * np.sqrt(Masses)
-        QBasis = QR_Decomp(WBasis)
-        QBasis /= np.sqrt(Masses)
-
-        return QBasis
+        return basis
 
 def QR_Decomp(V):
     """
