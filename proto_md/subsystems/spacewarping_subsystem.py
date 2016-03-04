@@ -111,10 +111,10 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
 	    logging.info('Updating ref structure and constructing new basis functions...')
 	    boxboundary = self.atoms.bbox()
 	    self.box = (boxboundary[1,:] - boxboundary[0,:]) * 1.1 # 110% of the macromolecular box
-
-            self.basis = self.Construct_Basis(self.atoms.positions)
-	    self.ref_coords = self.atoms.positions.copy()
 	    self.ref_com = self.atoms.centerOfMass()
+	    
+            self.basis = self.Construct_Basis(self.atoms.positions - self.ref_com)
+	    self.ref_coords = self.atoms.positions.copy()
 
     def ComputeCGInv(self,CG):
         """
@@ -129,7 +129,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         y = np.dot(self.basis, cg[nCG:2*nCG])
         z = np.dot(self.basis, cg[2*nCG:3*nCG])
 
-	return np.array([x,y,z]).T
+	return self.ref_com + np.array([x,y,z]).T
 
     def ComputeCG(self, pos):
         """
@@ -137,7 +137,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         CG = U^t * Mass * var
         var could be atomic positions or velocities
         """
-        Utw = self.basis.T * self.atoms.masses()
+        Utw = self.basis.T * self.atoms.masses
 
         cg = solve(np.dot(Utw, self.basis), np.dot(Utw,pos)
 
@@ -149,7 +149,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         CG = U^t * Mass * var
         var could be atomic positions or velocities
         """
-        Utw = self.basis.T * self.atoms.masses()	
+        Utw = self.basis.T * self.atoms.masses	
         vel = solve(np.dot(Utw, self.basis), np.dot(Utw,vel))
 
 	return vel
@@ -159,7 +159,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         Computes CG forces = U^t * <f>
         for an ensemble average atomic force <f>
         """
-        Utw = self.basis.T * self.atoms.masses()
+        Utw = self.basis.T * self.atoms.masses
 
         return solve(np.dot(Utw, self.basis), np.dot(Utw, forces))
 
