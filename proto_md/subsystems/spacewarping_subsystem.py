@@ -17,6 +17,7 @@ import subsystems
 import numpy as np
 from scipy.special import legendre
 from scipy.linalg import qr
+from numpy.linalg import norm, solve
 import logging
 
 class SpaceWarpingSubsystem(subsystems.SubSystem):
