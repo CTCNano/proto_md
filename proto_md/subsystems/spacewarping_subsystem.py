@@ -139,7 +139,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         """
         Utw = self.basis.T * self.atoms.masses
 
-        cg = solve(np.dot(Utw, self.basis), np.dot(Utw,pos)
+        cg = solve(np.dot(Utw, self.basis), np.dot(Utw,pos))
 
 	return cg
         
