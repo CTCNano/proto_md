@@ -112,7 +112,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
 	    boxboundary = self.atoms.bbox()
 	    self.box = (boxboundary[1,:] - boxboundary[0,:]) * 1.1 # 110% of the macromolecular box
 
-            self.basis = self.Construct_Basis(self.atoms.positions - self.atoms.centerOfMass())
+            self.basis = self.Construct_Basis(self.atoms.positions)
 	    self.ref_coords = self.atoms.positions.copy()
 	    self.ref_com = self.atoms.centerOfMass()
 
