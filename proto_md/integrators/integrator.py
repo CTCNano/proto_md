@@ -75,8 +75,8 @@ class Integrator(object):
         if self.system.should_solvate:
             with self.system.solvate() as sol:
                 with self.system.minimize(**sol) as mn:
-                    with self.system.equilibriate(**mn) as eq:
+                    with self.system.equilibrate(**mn) as eq:
                         self.system.md(**eq)
         else:
-            self.system.equilibriate()
+            self.system.equilibrate()
             self.system.md()
