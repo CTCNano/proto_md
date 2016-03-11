@@ -49,7 +49,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         # we need to be called with a valid universe
         self.universe_changed(system.universe)
         
-        self.CG_step = 0
+        self.cgStep = 0
         
         # How often should the reference struct be updated
         self.Freq_Update = freq
@@ -107,7 +107,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         this is called just after the structure is equilibriated, this is the starting struct
         for the MD runs, this is to calculate basis.
         """
-        if self.CG_step%self.Freq_Update == 0:
+        if self.cgStep%self.Freq_Update == 0:
 	    logging.info('Updating ref structure and constructing new basis functions...')
 	    boxboundary = self.atoms.bbox()
 	    self.box = (boxboundary[1,:] - boxboundary[0,:]) * 1.1 # 110% of the macromolecular box
