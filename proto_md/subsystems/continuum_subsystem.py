@@ -144,8 +144,8 @@ class ContinuumSubsystem(subsystems.SubSystem):
     def ComputeCG_Pos(self, pos):
         return self.CppFV.Py_ComputeCG_Pos(pos, self.CppFV.GetAdjNumNodes())
         
-    def ComputeCG_Vel(self, pos, vel):
-        return self.CppFV.Py_ComputeCG_Vel(pos, vel, self.CppFV.GetAdjNumNodes())
+    def ComputeCG_Mom(self, pos, vel):
+        return self.CppFV.Py_ComputeCG_Mom(pos, vel, self.CppFV.GetAdjNumNodes())
     
     def ComputeCG_For(self, pos, vel, forces):
         return self.CppFV.Py_ComputeCG_For(pos, vel, forces, self.CppFV.GetAdjNumNodes())
@@ -153,12 +153,12 @@ class ContinuumSubsystem(subsystems.SubSystem):
     def CoarseScale(self, Coords):
         return self.CppFV.Py_CoarseGrain(Coords)
     
-    def FineScaleVelo(self, Vels, Mom):
+    def FineScaleVelo(self, r, Vels, Mom):
         logging.info('fine graining ...')
 
         Mom = Mom[:self.NumNodes()]
 
-        self.PetscError, Vels = self.CppFV.Py_FineGrainMom(Mom.copy(), Mom.copy(), Mom.copy(), Vels[:,0], Vels[:,1], Vels[:,2], self.atoms.n_atoms * Vels.shape[1])
+        self.PetscError, Vels = self.CppFV.Py_FineGrainMom(Mom.copy(), Mom.copy(), Mom.copy(), Vels[:,0], Vels[:,1], Vels[:,2], r, self.atoms.n_atoms * Vels.shape[1])
         Vels = np.reshape(Vels, (Vels.shape[0]/3, 3))
 
 	return Vels

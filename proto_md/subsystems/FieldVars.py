@@ -114,7 +114,7 @@ class FieldVar(_object):
     def Py_FineGrain(self, *args): return _FieldVars.FieldVar_Py_FineGrain(self, *args)
     def Py_FineGrainMom(self, *args): return _FieldVars.FieldVar_Py_FineGrainMom(self, *args)
     def Py_ComputeCG_Pos(self, *args): return _FieldVars.FieldVar_Py_ComputeCG_Pos(self, *args)
-    def Py_ComputeCG_Vel(self, *args): return _FieldVars.FieldVar_Py_ComputeCG_Vel(self, *args)
+    def Py_ComputeCG_Mom(self, *args): return _FieldVars.FieldVar_Py_ComputeCG_Mom(self, *args)
     def Py_ComputeCG_For(self, *args): return _FieldVars.FieldVar_Py_ComputeCG_For(self, *args)
     __swig_destroy__ = _FieldVars.delete_FieldVar
     __del__ = lambda self : None;
