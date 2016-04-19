@@ -145,7 +145,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
         return self.CppFV.Py_ComputeCG_Pos(pos, self.CppFV.GetAdjNumNodes())
         
     def ComputeCG_Mom(self, pos, vel):
-        return self.CppFV.Py_ComputeCG_Mom(pos, vel, self.CppFV.GetAdjNumNodes())
+        return self.CppFV.Py_ComputeCG_Vel(pos, vel, self.CppFV.GetAdjNumNodes())
     
     def ComputeCG_For(self, pos, vel, forces):
         return self.CppFV.Py_ComputeCG_For(pos, vel, forces, self.CppFV.GetAdjNumNodes())
