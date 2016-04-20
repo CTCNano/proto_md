@@ -47,9 +47,12 @@ PetscErrorCode FieldVar::ConstructGrid(const PetscInt &NumNodes) {
 			hz = PetscScalar(k - 1) / (FieldVar::NumNodes_z - 1.0) * (FieldVar::Box[dim_z+FieldVar::Dim] - FieldVar::Box[dim_z]) + FieldVar::Box[dim_z];
 
 			if(FieldVar::GridID[i][j][k] >= 0) {
+
 				FieldVar::Grid[FieldVar::GridID[i][j][k]][dim_x] = hx;
 				FieldVar::Grid[FieldVar::GridID[i][j][k]][dim_y] = hy;
 				FieldVar::Grid[FieldVar::GridID[i][j][k]][dim_z] = hz;
+				std::cout << "Grid pos = " << hx << " , " << hy << " , " << hz << std::endl; 
+
 			}
 		}
 

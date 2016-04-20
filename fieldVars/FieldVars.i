@@ -24,13 +24,14 @@ import_array();
 %apply (double *IN_ARRAY1, int DIM1) {(double *vx, int vnx)};
 %apply (double *IN_ARRAY1, int DIM1) {(double *vy, int vny)};
 %apply (double *IN_ARRAY1, int DIM1) {(double *vz, int vnz)};
+%apply (double *IN_ARRAY2    , int DIM1, int DIM2) {(double *COORDS_IN, int NATOMS, int DIMC)};
 
 %apply (double *ARGOUT_ARRAY1, int DIM1) {(double *CG_OUT, int NUMCG)};
 %apply (double *IN_ARRAY2    , int DIM1, int DIM2) {(double *COORDS_IN , int NATOMS, int DIM)}; 
 
 %apply (double *ARGOUT_ARRAY1, int DIM1) {(double *CG_OUT, int NUMCG)};
 %apply (double *IN_ARRAY2    , int DIM1, int DIM2) {(double *COORDS_IN , int NATOMS1, int DIM1)};
-%apply (double *IN_ARRAY2    , int DIM1, int DIM2) {(double *VEL_IN , int NATOMS2, int DIM2)};
+%apply (double *IN_ARRAY1    , int DIM1) {(double *VEL_IN , int NATOMS2)};
 
 %apply (double *ARGOUT_ARRAY1, int DIM1) {(double *CG_OUT, int NUMCG)};
 %apply (double *IN_ARRAY2    , int DIM1, int DIM2) {(double *COORDS_IN , int NATOMS1, int DIM1)};

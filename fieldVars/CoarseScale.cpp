@@ -56,7 +56,7 @@ vector<PetscScalar> FieldVar::ComputeFV(const PetscScalar* const Coords) {
 	return FieldVar::FieldVars;
 }
 
-vector<PetscScalar> FieldVar::ComputeFV_Vel(const PetscScalar* const Coords, const PetscScalar* const Vel) {
+vector<PetscScalar> FieldVar::ComputeFV_Mom(const PetscScalar* const Coords, const PetscScalar* const Vel) {
 
 	/*************************************************************************/
 	/****** Computes the velocity of field variables: MPI not YET DONE! *****/
@@ -71,7 +71,7 @@ vector<PetscScalar> FieldVar::ComputeFV_Vel(const PetscScalar* const Coords, con
                 vector<PetscScalar> GridPos = FieldVar::Grid[i];
 
                 for(auto aa_it = it->begin(); aa_it != it->end(); aa_it++) 
-                        FieldVar::FieldVars_Vel[i] += Vel[(FieldVar::Dim)*(*aa_it)+2] * 
+                        FieldVar::FieldVars_Vel[i] += Vel[*aa_it] * 
 							FieldVar::KernelFunction(Coords+(FieldVar::Dim)*(*aa_it), 
 										 FieldVar::Mass[*aa_it], GridPos);
 

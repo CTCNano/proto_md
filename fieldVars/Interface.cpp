@@ -190,9 +190,9 @@ void FieldVar::Py_ComputeCG_Pos(double *COORDS_IN, int NATOMS, int DIM, double *
 		CG_OUT[i] = tmp[i];
 }
 
-void FieldVar::Py_ComputeCG_Vel(double *COORDS_IN, int NATOMS1, int DIM1, double *VEL_IN, int NATOMS2, int DIM2, double *CG_OUT, int NUMCG) {
+void FieldVar::Py_ComputeCG_Mom(double *COORDS_IN, int NATOMS1, int DIM1, double *VEL_IN, int NATOMS2, double *CG_OUT, int NUMCG) {
 	PetscFunctionBegin;
-	vector<PetscScalar> tmp = FieldVar::ComputeFV_Vel(COORDS_IN, VEL_IN);
+	vector<PetscScalar> tmp = FieldVar::ComputeFV_Mom(COORDS_IN, VEL_IN);
 
 	for(auto i = 0; i < tmp.size(); i++)
 		CG_OUT[i] = tmp[i];
@@ -207,7 +207,7 @@ void FieldVar::Py_ComputeCG_For(double *COORDS_IN, int NATOMS1, int DIM1, double
 }
 
 PetscErrorCode FieldVar::Py_FineGrainMom(double* FV1, int DIM_FV1, double* FV2, int DIM_FV2, double* FV3, int DIM_FV3, double *vx, int vnx, double *vy, 
-					  int vny, double *vz, int vnz, double* VELS_OUT, int NATOMS_BY_3) {
+					  int vny, double *vz, int vnz, double* COORDS_IN, int NATOMS, int DIMC, double* VELS_OUT, int NATOMS_BY_3) {
 
         /*******************************************/
         /***** FineGraining momenta using MSR *****/
@@ -243,7 +243,7 @@ PetscErrorCode FieldVar::Py_FineGrainMom(double* FV1, int DIM_FV1, double* FV2, 
                 };
 
 
-		FieldVar::ierr = FieldVar::computeKernel(); CHKERRQ(FieldVar::ierr);
+		FieldVar::ierr = FieldVar::computeKernel(COORDS_IN); CHKERRQ(FieldVar::ierr);
 		FieldVar::ierr = MatMatTransposeMult(FieldVar::KernelMatrix, FieldVar::KernelMatrix, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &(FieldVar::TransKernelTrans));
 		CHKERRQ(FieldVar::ierr);
 
@@ -271,10 +271,21 @@ PetscErrorCode FieldVar::Py_FineGrainMom(double* FV1, int DIM_FV1, double* FV2, 
 			FieldVar::ierr = VecScale(Vels_petsc[dim], -1.0); CHKERRQ(FieldVar::ierr);
 
 			FieldVar::ierr = MatMultAdd(FieldVar::KernelMatrix, Vels_petsc[dim], mom, mom); CHKERRQ(FieldVar::ierr);
+
+			/*
+			MatMult(FieldVar::KernelMatrix, Vels_petsc[dim], mom);
+			VecView(mom, PETSC_VIEWER_STDOUT_SELF);
+
+			vector<PetscScalar> tmp = FieldVar::ComputeFV_MomX(FieldVar::Coords, vx);
+			for(auto i = tmp.begin(); i != tmp.end(); i++)
+				std::cout << *i << " , ";
+
+			std::cout << std::endl;			
+			*/
+
 			FieldVar::ierr = VecScale(Vels_petsc[dim], -1.0); CHKERRQ(FieldVar::ierr);
 
 	        	FieldVar::ierr = KSPSolve(ksp, mom, mom); CHKERRQ(FieldVar::ierr);
-			//VecView(mom, PETSC_VIEWER_STDOUT_SELF);
 
 			FieldVar::ierr = MatMultTransposeAdd(FieldVar::KernelMatrix, mom, Vels_petsc[dim], Vels_petsc[dim]); CHKERRQ(FieldVar::ierr);
 		}
@@ -365,8 +376,6 @@ PetscErrorCode FieldVar::Py_FineGrain(double* FV, int FV_DIM, double *x, int nx,
 					FieldVar::ierr = FieldVar::KernelJacobian(Coords_petsc, dim);
 
 			cons_error = FieldVar::ComputeLagrangeMulti(Coords_petsc, Multipliers, FV_vec, FieldVar::Scaling, iters, Assemble);
-			VecMin(FV_vec, NULL, &minFV);
-			cons_error /= minFV;
 
 			atomic_error = .0;
 

@@ -22,8 +22,9 @@
  */
 
 #include "Interface.h"
+#include <time.h> 
 
-PetscErrorCode FieldVar::computeKernel() {
+PetscErrorCode FieldVar::computeKernel(double* Coords) {
 
         /******************************************************************************/
         /******** Construct the transpose of the Jacobian of the kernel function *****/
@@ -41,17 +42,6 @@ PetscErrorCode FieldVar::computeKernel() {
         PetscErrorCode ierr;
        	PetscInt istart, iend;
 
-	PetscScalar* CoordsTmp;
-       	VecGetArray(FieldVar::Coords, &CoordsTmp);
-
-	for(auto i = 0; i < FieldVar::Natoms; i++) {
-
-		FieldVar::Coords_Local_x[i] = CoordsTmp[i*(FieldVar::Dim)]; 
-        	FieldVar::Coords_Local_y[i] = CoordsTmp[i*(FieldVar::Dim)+1];
-       		FieldVar::Coords_Local_z[i] = CoordsTmp[i*(FieldVar::Dim)+2];
-	}
-
-
        	MatGetOwnershipRange(FieldVar::KernelMatrix, &istart, &iend);
 
         for(auto i = istart; i < iend; i++) {
@@ -63,8 +53,7 @@ PetscErrorCode FieldVar::computeKernel() {
                 for(auto atom = FieldVar::FVList[i].begin(); atom != FieldVar::FVList[i].end(); atom++) {
 
                         vector<PetscScalar> GridPos = FieldVar::Grid[i];
-                        const PetscScalar r[] = {FieldVar::Coords_Local_x[*atom], FieldVar::Coords_Local_y[*atom], FieldVar::Coords_Local_z[*atom]};
-                        values[count] = FieldVar::KernelFunction(r, FieldVar::Mass[*atom], GridPos);
+                        values[count] = FieldVar::KernelFunction( Coords+(FieldVar::Dim)*(*atom), FieldVar::Mass[*atom], GridPos);
                         Indices[count++] = (*atom);
 
                 }
@@ -76,8 +65,6 @@ PetscErrorCode FieldVar::computeKernel() {
 
 	ierr = MatAssemblyBegin(FieldVar::KernelMatrix, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
         ierr = MatAssemblyEnd(FieldVar::KernelMatrix, MAT_FINAL_ASSEMBLY); CHKERRQ(ierr);
-
-	VecRestoreArray(FieldVar::Coords, &CoordsTmp);
 
         PetscFunctionReturn(ierr);
 
@@ -289,13 +276,18 @@ PetscScalar FieldVar::ComputeLagrangeMulti(const Vec *const Coords, Vec Multipli
 
 	VecAXPBY(Cons, 1.0, -1.0, FV); // Cons = FV - Cons
 
-	PetscScalar cons_error;
-	VecNorm(Cons, NORM_INFINITY, &cons_error);
-
 	if(Assemble && iters == 0) {
+			AssembleJacobian(Coords);
+		
+			/*	
+			PetscViewer viewer;
+			PetscViewerASCIIOpen(FieldVar::COMM, "Jacob.m", &viewer);
+			PetscViewerSetFormat(viewer, PETSC_VIEWER_ASCII_MATLAB);
+			MatView(Jacobian,viewer);
+			PetscViewerDestroy(&viewer);
+			*/
 
-			FieldVar::ierr = FieldVar::AssembleJacobian(Coords);
-			MatShift(FieldVar::Jacobian, Scaling);
+			MatShift(Jacobian, Scaling);
 	}
 
 	//MatView(FieldVar::Jacobian, PETSC_VIEWER_STDOUT_WORLD);
@@ -318,9 +310,13 @@ PetscScalar FieldVar::ComputeLagrangeMulti(const Vec *const Coords, Vec Multipli
 	KSPGetIterationNumber(ksp, &iters);
 	KSPDestroy(&ksp);
 
+	PetscScalar consError;
+        ierr = VecPointwiseDivide(Cons, Cons, FV);
+        ierr = VecMax(Cons, NULL, &consError);
+
 	VecDestroy(&Cons);
 
 	FieldVar::fp << FieldVar::GetTime() << ":INFO:KSP converged in " << iters << endl;
 
-	PetscFunctionReturn(cons_error);
+	PetscFunctionReturn(consError);
 }

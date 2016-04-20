@@ -5255,6 +5255,9 @@ SWIGINTERN PyObject *_wrap_FieldVar_Py_FineGrainMom(PyObject *SWIGUNUSEDPARM(sel
   int arg13 ;
   double *arg14 = (double *) 0 ;
   int arg15 ;
+  int arg16 ;
+  double *arg17 = (double *) 0 ;
+  int arg18 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyArrayObject *array2 = NULL ;
@@ -5269,7 +5272,9 @@ SWIGINTERN PyObject *_wrap_FieldVar_Py_FineGrainMom(PyObject *SWIGUNUSEDPARM(sel
   int is_new_object10 = 0 ;
   PyArrayObject *array12 = NULL ;
   int is_new_object12 = 0 ;
-  PyObject *array14 = NULL ;
+  PyArrayObject *array14 = NULL ;
+  int is_new_object14 = 0 ;
+  PyObject *array17 = NULL ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
@@ -5278,9 +5283,10 @@ SWIGINTERN PyObject *_wrap_FieldVar_Py_FineGrainMom(PyObject *SWIGUNUSEDPARM(sel
   PyObject * obj5 = 0 ;
   PyObject * obj6 = 0 ;
   PyObject * obj7 = 0 ;
+  PyObject * obj8 = 0 ;
   PetscErrorCode result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOO:FieldVar_Py_FineGrainMom",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOOOOOO:FieldVar_Py_FineGrainMom",&obj0,&obj1,&obj2,&obj3,&obj4,&obj5,&obj6,&obj7,&obj8)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_FieldVar, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldVar_Py_FineGrainMom" "', argument " "1"" of type '" "FieldVar *""'"); 
@@ -5353,25 +5359,37 @@ SWIGINTERN PyObject *_wrap_FieldVar_Py_FineGrainMom(PyObject *SWIGUNUSEDPARM(sel
     arg13 = (int) array_size(array12,0);
   }
   {
+    npy_intp size[2] = {
+      -1, -1 
+    };
+    array14 = obj_to_array_contiguous_allow_conversion(obj7, NPY_DOUBLE,
+      &is_new_object14);
+    if (!array14 || !require_dimensions(array14, 2) ||
+      !require_size(array14, size, 2)) SWIG_fail;
+    arg14 = (double*) array_data(array14);
+    arg15 = (int) array_size(array14,0);
+    arg16 = (int) array_size(array14,1);
+  }
+  {
     npy_intp dims[1];
-    if (!PyInt_Check(obj7))
+    if (!PyInt_Check(obj8))
     {
-      const char* typestring = pytype_string(obj7);
+      const char* typestring = pytype_string(obj8);
       PyErr_Format(PyExc_TypeError,
         "Int dimension expected.  '%s' given.",
         typestring);
       SWIG_fail;
     }
-    arg15 = (int) PyInt_AsLong(obj7);
-    dims[0] = (npy_intp) arg15;
-    array14 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array14) SWIG_fail;
-    arg14 = (double*) array_data(array14);
+    arg18 = (int) PyInt_AsLong(obj8);
+    dims[0] = (npy_intp) arg18;
+    array17 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array17) SWIG_fail;
+    arg17 = (double*) array_data(array17);
   }
-  result = (arg1)->Py_FineGrainMom(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15);
+  result = (arg1)->Py_FineGrainMom(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9,arg10,arg11,arg12,arg13,arg14,arg15,arg16,arg17,arg18);
   resultobj = SWIG_NewPointerObj((new PetscErrorCode(static_cast< const PetscErrorCode& >(result))), SWIGTYPE_p_PetscErrorCode, SWIG_POINTER_OWN |  0 );
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,array14);
+    resultobj = SWIG_Python_AppendOutput(resultobj,array17);
   }
   {
     if (is_new_object2 && array2)
@@ -5407,6 +5425,12 @@ SWIGINTERN PyObject *_wrap_FieldVar_Py_FineGrainMom(PyObject *SWIGUNUSEDPARM(sel
     if (is_new_object12 && array12)
     {
       Py_DECREF(array12); 
+    }
+  }
+  {
+    if (is_new_object14 && array14)
+    {
+      Py_DECREF(array14); 
     }
   }
   return resultobj;
@@ -5445,6 +5469,12 @@ fail:
     if (is_new_object12 && array12)
     {
       Py_DECREF(array12); 
+    }
+  }
+  {
+    if (is_new_object14 && array14)
+    {
+      Py_DECREF(array14); 
     }
   }
   return NULL;
@@ -5525,7 +5555,7 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_FieldVar_Py_ComputeCG_Vel(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+SWIGINTERN PyObject *_wrap_FieldVar_Py_ComputeCG_Mom(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   FieldVar *arg1 = (FieldVar *) 0 ;
   double *arg2 = (double *) 0 ;
@@ -5533,25 +5563,24 @@ SWIGINTERN PyObject *_wrap_FieldVar_Py_ComputeCG_Vel(PyObject *SWIGUNUSEDPARM(se
   int arg4 ;
   double *arg5 = (double *) 0 ;
   int arg6 ;
-  int arg7 ;
-  double *arg8 = (double *) 0 ;
-  int arg9 ;
+  double *arg7 = (double *) 0 ;
+  int arg8 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyArrayObject *array2 = NULL ;
   int is_new_object2 = 0 ;
   PyArrayObject *array5 = NULL ;
   int is_new_object5 = 0 ;
-  PyObject *array8 = NULL ;
+  PyObject *array7 = NULL ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
   PyObject * obj3 = 0 ;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOOO:FieldVar_Py_ComputeCG_Vel",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:FieldVar_Py_ComputeCG_Mom",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_FieldVar, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldVar_Py_ComputeCG_Vel" "', argument " "1"" of type '" "FieldVar *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FieldVar_Py_ComputeCG_Mom" "', argument " "1"" of type '" "FieldVar *""'"); 
   }
   arg1 = reinterpret_cast< FieldVar * >(argp1);
   {
@@ -5567,16 +5596,15 @@ SWIGINTERN PyObject *_wrap_FieldVar_Py_ComputeCG_Vel(PyObject *SWIGUNUSEDPARM(se
     arg4 = (int) array_size(array2,1);
   }
   {
-    npy_intp size[2] = {
-      -1, -1 
+    npy_intp size[1] = {
+      -1 
     };
     array5 = obj_to_array_contiguous_allow_conversion(obj2, NPY_DOUBLE,
       &is_new_object5);
-    if (!array5 || !require_dimensions(array5, 2) ||
-      !require_size(array5, size, 2)) SWIG_fail;
+    if (!array5 || !require_dimensions(array5, 1) ||
+      !require_size(array5, size, 1)) SWIG_fail;
     arg5 = (double*) array_data(array5);
     arg6 = (int) array_size(array5,0);
-    arg7 = (int) array_size(array5,1);
   }
   {
     npy_intp dims[1];
@@ -5588,16 +5616,16 @@ SWIGINTERN PyObject *_wrap_FieldVar_Py_ComputeCG_Vel(PyObject *SWIGUNUSEDPARM(se
         typestring);
       SWIG_fail;
     }
-    arg9 = (int) PyInt_AsLong(obj3);
-    dims[0] = (npy_intp) arg9;
-    array8 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array8) SWIG_fail;
-    arg8 = (double*) array_data(array8);
+    arg8 = (int) PyInt_AsLong(obj3);
+    dims[0] = (npy_intp) arg8;
+    array7 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
+    if (!array7) SWIG_fail;
+    arg7 = (double*) array_data(array7);
   }
-  (arg1)->Py_ComputeCG_Vel(arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
+  (arg1)->Py_ComputeCG_Mom(arg2,arg3,arg4,arg5,arg6,arg7,arg8);
   resultobj = SWIG_Py_Void();
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,array8);
+    resultobj = SWIG_Python_AppendOutput(resultobj,array7);
   }
   {
     if (is_new_object2 && array2)
@@ -5828,7 +5856,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"FieldVar_Py_FineGrain", _wrap_FieldVar_Py_FineGrain, METH_VARARGS, NULL},
 	 { (char *)"FieldVar_Py_FineGrainMom", _wrap_FieldVar_Py_FineGrainMom, METH_VARARGS, NULL},
 	 { (char *)"FieldVar_Py_ComputeCG_Pos", _wrap_FieldVar_Py_ComputeCG_Pos, METH_VARARGS, NULL},
-	 { (char *)"FieldVar_Py_ComputeCG_Vel", _wrap_FieldVar_Py_ComputeCG_Vel, METH_VARARGS, NULL},
+	 { (char *)"FieldVar_Py_ComputeCG_Mom", _wrap_FieldVar_Py_ComputeCG_Mom, METH_VARARGS, NULL},
 	 { (char *)"FieldVar_Py_ComputeCG_For", _wrap_FieldVar_Py_ComputeCG_For, METH_VARARGS, NULL},
 	 { (char *)"delete_FieldVar", _wrap_delete_FieldVar, METH_VARARGS, NULL},
 	 { (char *)"FieldVar_swigregister", FieldVar_swigregister, METH_VARARGS, NULL},

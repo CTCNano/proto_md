@@ -97,16 +97,16 @@ class ContinuumSubsystem(subsystems.SubSystem):
 		CGv = np.zeros(self.nNodes)
 		CGf = np.zeros(self.nNodes)
 
-		CG[:self.NumNodes()], CGv[:self.NumNodes()], CGf[:self.NumNodes()] = self.ComputeCG_Pos(pos), self.ComputeCG_Mom(pos, vel), self.ComputeCG_For(pos, vel, forces)		
+		CG[:self.NumNodes()], CGv[:self.NumNodes()], CGf[:self.NumNodes()] = self.ComputeCG_Pos(pos), self.ComputeCG_Vel(pos, vel), self.ComputeCG_For(pos, vel, forces)		
 	else:
-	        CG, CGv, CGf = self.ComputeCG_Pos(pos), self.ComputeCG_Mom(pos, vel), self.ComputeCG_For(pos, vel, forces)
+	        CG, CGv, CGf = self.ComputeCG_Pos(pos), self.ComputeCG_Vel(pos, vel), self.ComputeCG_For(pos, vel, forces)
 
 	return CG, CGv, CGf
                 
     def minimized(self):
         pass
     
-    def equilibrated(self):
+    def equilibriated(self):
         """
         this is called just after the structure is equilibriated, this is the starting struct
         for the MD runs, this is to calculate basis.
@@ -145,7 +145,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
         return self.CppFV.Py_ComputeCG_Pos(pos, self.CppFV.GetAdjNumNodes())
         
     def ComputeCG_Mom(self, pos, vel):
-        return self.CppFV.Py_ComputeCG_Vel(pos, vel, self.CppFV.GetAdjNumNodes())
+        return self.CppFV.Py_ComputeCG_Mom(pos, vel, self.CppFV.GetAdjNumNodes())
     
     def ComputeCG_For(self, pos, vel, forces):
         return self.CppFV.Py_ComputeCG_For(pos, vel, forces, self.CppFV.GetAdjNumNodes())

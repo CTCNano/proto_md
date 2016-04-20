@@ -79,15 +79,16 @@ private:
 
   // Coarse graining
   vector<PetscScalar> ComputeFV(const PetscScalar* const Coords);
-  vector<PetscScalar> ComputeFV_Vel(const PetscScalar* const Coords, const PetscScalar* const Vel);
+  vector<PetscScalar> ComputeFV_Mom(const PetscScalar* const Coords, const PetscScalar* const Vel);
   vector<PetscScalar> ComputeFV_For(const PetscScalar* const Coords, const PetscScalar* const Vel, const PetscScalar* const For);
+
   PetscErrorCode SetupJacobians();
   PetscErrorCode DeleteJacobians();
 
   // Kernel functions
   PetscErrorCode KernelJacobian(const Vec *const Coords, const PetscInt &dim);
   PetscScalar KernelFunction(const PetscScalar* const Coords, PetscInt mass, const vector<PetscScalar> &GridPos);
-  PetscErrorCode computeKernel();
+  PetscErrorCode computeKernel(double*);
 
   // Data structures
   PetscErrorCode ConstructAtomList(const double* const);
@@ -144,12 +145,13 @@ public:
   // External functions (to be called from python)
   PetscErrorCode Py_CoarseGrain(double* IN_ARRAY2, int DIM1, int DIM2);
   PetscErrorCode Py_UpdateGrid(double* IN_ARRAY2, int DIM1, int DIM2);
-  PetscErrorCode Py_FineGrain(double* FV, int FV_DIM, double *x, int nx, double *y, int ny, double *z, int nz, double* COORDS_OUT, int NATOMS_BY_3, PyObject* Assemble);
+  PetscErrorCode Py_FineGrain(double* FV, int FV_DIM, double *x, int nx, double *y, int ny, double *z, int nz,
+			      double* COORDS_OUT, int NATOMS_BY_3, PyObject* Assemble);
   PetscErrorCode Py_FineGrainMom(double* FV1, int DIM_FV1, double* FV2, int DIM_FV2, double* FV3, int DIM_FV3, double *vx, int vnx, double *vy,
-                                          int vny, double *vz, int vnz, double* VELS_OUT, int NATOMS_BY_3);
+                                          int vny, double *vz, int vnz, double* COORDS_IN, int NATOMS, int DIMC, double* VELS_OUT, int NATOMS_BY_3);
 
   void Py_ComputeCG_Pos(double *COORDS_IN, int NATOMS, int DIM, double *CG_OUT, int NUMCG);
-  void Py_ComputeCG_Vel(double *COORDS_IN, int NATOMS1, int DIM1, double *VEL_IN, int NATOMS2, int DIM2, double *CG_OUT, int NUMCG);
+  void Py_ComputeCG_Mom(double *COORDS_IN, int NATOMS1, int DIM1, double *VEL_IN, int NATOMS2, double *CG_OUT, int NUMCG);
   void Py_ComputeCG_For(double *COORDS_IN, int NATOMS1, int DIM1, double *VEL_IN, int NATOMS2, int DIM2, double *FOR_IN, int NATOMS3, int DIM3, double *CG_OUT, int NUMCG);
 
   ~FieldVar() {
