@@ -133,35 +133,33 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
 
     def ComputeCG(self, pos):
         """
-        Computes CG momenta or positions
-        CG = U^t * Mass * var
-        var could be atomic positions or velocities
+        Computes CG positions
+        CG = inverse(Utw * self.basis) * Utw * pos
         """
         Utw = self.basis.T * self.atoms.masses
-
         cg = solve(np.dot(Utw, self.basis), np.dot(Utw,pos))
 
 	return cg
         
     def ComputeCG_Vel(self, vel):
         """
-        Computes CG momenta or positions
-        CG = U^t * Mass * var
-        var could be atomic positions or velocities
+        Computes CG velocities
+        CG = inverse(Utw * self.basis) * Utw * vel
         """
         Utw = self.basis.T * self.atoms.masses	
-        vel = solve(np.dot(Utw, self.basis), np.dot(Utw,vel))
+        cg_vel = solve(np.dot(Utw, self.basis), np.dot(Utw,vel))
 
-	return vel
+	return cg_vel
 
-    def ComputeCG_Forces(self, atomic_forces):
+    def ComputeCG_Forces(self, forces):
         """
-        Computes CG forces = U^t * <f>
-        for an ensemble average atomic force <f>
+        Computes CG forces
+        CG = inverse(Utw * self.basis) * Utw * forces
         """
         Utw = self.basis.T * self.atoms.masses
+        cg_forces = solve(np.dot(Utw, self.basis), np.dot(Utw, forces))
 
-        return solve(np.dot(Utw, self.basis), np.dot(Utw, forces))
+        return cg_forces
 
     def Construct_Basis(self,coords):
         """
