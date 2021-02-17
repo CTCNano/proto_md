@@ -29,17 +29,19 @@ class FactorizationIntegrator(integrator.Integrator):
 	# this used to be: avg_velocities = np.mean(np.mean(self.system.cg_velocities, axis = 0), axis = 1).flatten()[:,np.newaxis]
 
 	# this is hackish ~ but more reliable than using the very chaotic velocities
-	avg_velocities = (self.system.cg_positions[0,:,-1,:] - self.system.cg_positions[0,:,0,:]) / \
-			(self.system.config["md_steps"] * self.system.config["dt"])
+	CG_current = self.system.cg_positions[0,:,-1,:] # last frame
+        CG_previous = self.system.cg_positions[0,:,0,:] # initial frame
+        dt_md = self.system.config["md_steps"] * self.system.config["dt"] # little delta
+	avg_velocities = (CG_current - CG_previous) / dt_md
 
-	# check this too: avg_velocities = self.system.cg_velocities[0,:,:,:].mean(axis=2)
-		
+	# check this too: avg_velocities = self.system.cg_velocities[0,:,:,:].mean(axis=2)		
 	avg_velocities = avg_velocities.flatten()[:,np.newaxis]
 
 	# this is hackish. The 1000 factor should be replaced with 'dt' from the mdp file in case the user
 	# takes more than 1fs timestep
 
 	cg_dt = self.system.dt 
-        cg_translate = cg_dt * avg_velocities * 1000.0 # (ps to fs)
+	ps_to_fs = 1000.0
+        cg_translate = cg_dt * avg_velocities * ps_to_fs
 	
         self.system.translate(cg_translate)
