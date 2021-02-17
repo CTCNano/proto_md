@@ -30,13 +30,14 @@ class FactorizationIntegrator(integrator.Integrator):
 
 	# this is hackish ~ but more reliable than using the very chaotic velocities
 	avg_velocities = (self.system.cg_positions[0,:,-1,:] - self.system.cg_positions[0,:,0,:]) / \
-			(self.system.config["md_steps"]	- self.system.config["nstxout"])
+			(self.system.config["md_steps"] * self.system.config["dt"])
 
 	avg_velocities = avg_velocities.flatten()[:,np.newaxis]
 
 	# this is hackish. The 1000 factor should be replaced with 'dt' from the mdp file in case the user
 	# takes more than 1fs timestep
 
-        cg_translate = self.system.dt * avg_velocities * 1000.0 # (ps to fs)
+	cg_dt = self.system.dt 
+        cg_translate = cg_dt * avg_velocities * 1000.0 # (ps to fs)
 	
         self.system.translate(cg_translate)
