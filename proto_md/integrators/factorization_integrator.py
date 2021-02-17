@@ -32,6 +32,8 @@ class FactorizationIntegrator(integrator.Integrator):
 	avg_velocities = (self.system.cg_positions[0,:,-1,:] - self.system.cg_positions[0,:,0,:]) / \
 			(self.system.config["md_steps"] * self.system.config["dt"])
 
+	# check this too: avg_velocities = self.system.cg_velocities[0,:,:,:].mean(axis=2)
+		
 	avg_velocities = avg_velocities.flatten()[:,np.newaxis]
 
 	# this is hackish. The 1000 factor should be replaced with 'dt' from the mdp file in case the user
