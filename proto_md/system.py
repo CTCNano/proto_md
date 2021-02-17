@@ -467,8 +467,9 @@ class System(object):
         #write to ts
         self.current_timestep.cg_translate = cg_translate
 
-        for i, s in enumerate(self.subsystems):
-            s.translate(cg_translate[i*self.ncgs:i*self.ncgs+self.ncgs])
+        for i, subsys in enumerate(self.subsystems):
+            subsys.translate(cg_translate[i*self.ncgs:i*self.ncgs+self.ncgs]) 
+        # subsys.translate updates the atomic positions in each subsystem
 
         self.current_timestep.atomic_final_positions = self.universe.atoms.positions
 
