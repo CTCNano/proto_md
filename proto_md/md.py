@@ -15,32 +15,32 @@ import shutil
 import logging
 import re
 import subprocess
-import MDAnalysis       #@UnresolvedImport
-import MDAnalysis.core  #@UnresolvedImport
+import MDAnalysis  # @UnresolvedImport
+import MDAnalysis.core  # @UnresolvedImport
 import gromacs.setup
 import gromacs.run
 import gromacs.utilities
-import config
+from . import config
 from collections import namedtuple
 from os import path
-from util import data_tofile, is_env_set
+from .util import data_tofile, is_env_set
 import shutil
 import tempfile
 import glob
 import numpy
 import re
 
-#from collections import Mapping, Hashable
+# from collections import Mapping, Hashable
 
 
 class MDManager(dict):
     # __slots__ = ("__dict", "dirname")
 
     def __init__(self, *args, **kwargs):
-        super(MDManager,self).__init__(*args, **kwargs)
+        super(MDManager, self).__init__(*args, **kwargs)
 
         if not self.has_key("dirname"):
-            raise ValueError("MDManager arguments must contain a \"dirname\" key")
+            raise ValueError('MDManager arguments must contain a "dirname" key')
 
         self.dirname = self["dirname"]
         del self["dirname"]
@@ -52,7 +52,9 @@ class MDManager(dict):
         self.dirname = os.path.abspath(self.dirname)
 
     def __repr__(self):
-        return "MDManager(dirname={}, dict={})".format(self.dirname, super(MDManager,self).__repr__())
+        return "MDManager(dirname={}, dict={})".format(
+            self.dirname, super(MDManager, self).__repr__()
+        )
 
     def __enter__(self):
         return self
@@ -67,21 +69,40 @@ class MDManager(dict):
 
         traceback: A traceback instance.
         """
-        logging.debug("dirname: {} exc_type {}, exc_value {}, traceback {}".format(self.dirname, exc_type, exc_value, traceback))
+        logging.debug(
+            "dirname: {} exc_type {}, exc_value {}, traceback {}".format(
+                self.dirname, exc_type, exc_value, traceback
+            )
+        )
         proto_debug = is_env_set("PROTO_DEBUG")
-        if not proto_debug and exc_type is None and exc_value is None and traceback is None:
+        if (
+            not proto_debug
+            and exc_type is None
+            and exc_value is None
+            and traceback is None
+        ):
             logging.debug("deleting {}".format(self.dirname))
             shutil.rmtree(self.dirname)
         else:
             if proto_debug:
-                logging.info("PROTO_DEBUG is set, NOT deleting temporary directory {}".format(self.dirname))
+                logging.info(
+                    "PROTO_DEBUG is set, NOT deleting temporary directory {}".format(
+                        self.dirname
+                    )
+                )
             else:
-                logging.error("MDManager in directory {} __exit__ called with exception {}".format(self.dirname, exc_value))
-                logging.error("MDManager will NOT delete directory {}".format(self.dirname))
+                logging.error(
+                    "MDManager in directory {} __exit__ called with exception {}".format(
+                        self.dirname, exc_value
+                    )
+                )
+                logging.error(
+                    "MDManager will NOT delete directory {}".format(self.dirname)
+                )
 
 
 def test(dirname):
-    return MDManager({'dirname':dirname})
+    return MDManager({"dirname": dirname})
 
 
 class MDrunner(gromacs.run.MDrunner):
@@ -89,6 +110,7 @@ class MDrunner(gromacs.run.MDrunner):
 
     .. _mpich2: http://www.mcs.anl.gov/research/projects/mpich2/
     """
+
     mdrun = "mdrun"
     mpiexec = "mpiexec"
 
@@ -102,23 +124,37 @@ class MDrunner(gromacs.run.MDrunner):
         complicated cases.)
         """
 
-        if os.environ.get("SLURM_NPROCS", None) is not None or \
-            os.environ.get('PBS_JOBID', None) is not None:
+        if (
+            os.environ.get("SLURM_NPROCS", None) is not None
+            or os.environ.get("PBS_JOBID", None) is not None
+        ):
             logging.info("running in SLURM or PBS, not specifying nprocs")
             return ["mpiexec"]
         elif os.environ.get("PROTO_NPROCS", None) is not None:
-            logging.info("user specified number of PROTO processors: {}".format(os.environ.get("PROTO_NPROCS", None)))
+            logging.info(
+                "user specified number of PROTO processors: {}".format(
+                    os.environ.get("PROTO_NPROCS", None)
+                )
+            )
             nprocs = int(os.environ.get("PROTO_NPROCS", None))
             return ["mpiexec", "-n", str(nprocs)]
         else:
-            nprocs = os.sysconf('SC_NPROCESSORS_ONLN')
+            nprocs = os.sysconf("SC_NPROCESSORS_ONLN")
             logging.debug("determined nprocs is {} fron os.sysconf".format(nprocs))
             return ["mpiexec", "-n", str(nprocs)]
 
 
-def minimize(struct, top, top_includes, dirname=None,
-             minimize_output="em.gro", deffnm="em", mdrunner=MDrunner,
-             mdp="em.mdp", **kwargs):
+def minimize(
+    struct,
+    top,
+    top_includes,
+    dirname=None,
+    minimize_output="em.gro",
+    deffnm="em",
+    mdrunner=MDrunner,
+    mdp="em.mdp",
+    **kwargs
+):
     """
     Energy minimize a system.
 
@@ -174,10 +210,10 @@ def minimize(struct, top, top_includes, dirname=None,
     struct = data_tofile(struct, "src.gro", dirname=dirname)
     top = data_tofile(top, "src.top", dirname=dirname)
 
-#    import pdb; pdb.set_trace()
+    #    import pdb; pdb.set_trace()
     logging.debug("top_includes: {}".format(top_includes))
     for i in top_includes:
-        data_tofile(i,dirname=dirname)
+        data_tofile(i, dirname=dirname)
 
     logging.info("using mdp template {} from key {}".format(config.templates[mdp], mdp))
     mdp = config.templates[mdp]
@@ -185,21 +221,37 @@ def minimize(struct, top, top_includes, dirname=None,
     # this stop grompp from failing if there are warning.
     # TODO, is this the best place to put this, should this be in in
     # config.py ????
-    kwargs.setdefault('maxwarn', -1)
+    kwargs.setdefault("maxwarn", -1)
 
     # gromacs.setup.energy_minimize returns
     # { 'struct': final_struct,
     #   'top': topology,
     #   'mainselection': mainselection,
     # }
-    result = gromacs.setup.energy_minimize(dirname=dirname, struct=struct,
-                                         top=top, output=minimize_output, deffnm=deffnm,
-                                         mdp=mdp, mdrunner=mdrunner, **kwargs)
+    result = gromacs.setup.energy_minimize(
+        dirname=dirname,
+        struct=struct,
+        top=top,
+        output=minimize_output,
+        deffnm=deffnm,
+        mdp=mdp,
+        mdrunner=mdrunner,
+        **kwargs
+    )
     result["dirname"] = dirname
     return MDManager(result)
 
-def setup_md(struct, top, top_includes, deffnm="md", dirname=None, mdp="md_CHARMM27.mdp",
-             mainselection=None, **kwargs):
+
+def setup_md(
+    struct,
+    top,
+    top_includes,
+    deffnm="md",
+    dirname=None,
+    mdp="md_CHARMM27.mdp",
+    mainselection=None,
+    **kwargs
+):
     """Set up Gromacs MD run..
 
     Additional itp files should be in the same directory as the top file.
@@ -268,8 +320,11 @@ def setup_md(struct, top, top_includes, deffnm="md", dirname=None, mdp="md_CHARM
               restraint runs by default. Set the corresponding ``nst*``
               variables if you require more output.
     """
-    logging.debug("struct = {}, top = {}, top_includes = {}, deffnm = {}, dirname = {}, mdp = {}, mainselection = {}, kwargs = {}".format( \
-                  struct, top, top_includes, deffnm, dirname, mdp, mainselection, kwargs))
+    logging.debug(
+        "struct = {}, top = {}, top_includes = {}, deffnm = {}, dirname = {}, mdp = {}, mainselection = {}, kwargs = {}".format(
+            struct, top, top_includes, deffnm, dirname, mdp, mainselection, kwargs
+        )
+    )
 
     logging.info("[%(dirname)s] Setting up MD with position restraints..." % vars())
 
@@ -282,25 +337,32 @@ def setup_md(struct, top, top_includes, deffnm="md", dirname=None, mdp="md_CHARM
 
     logging.debug("top_includes: {}".format(top_includes))
     for i in top_includes:
-        logging.debug("copying file {} to {}".format(i,dirname))
-        data_tofile(i,dirname=dirname)
+        logging.debug("copying file {} to {}".format(i, dirname))
+        data_tofile(i, dirname=dirname)
 
     # required from gromacswrapper, if this is not set, it will fail as it expects
     # a queing systme.
-    kwargs.setdefault('qname', None)
+    kwargs.setdefault("qname", None)
 
     # this stop grompp from failing if there are warning.
     # TODO, is this the best place to put this, should this be in in
     # config.py ????
-    kwargs.setdefault('maxwarn', -1)
+    kwargs.setdefault("maxwarn", -1)
 
     logging.info("using mdp template {} from key {}".format(config.templates[mdp], mdp))
     mdp = config.templates[mdp]
 
     logging.debug("calling _setup_MD with kwargs: {}".format(kwargs))
 
-    setup_MD = gromacs.setup._setup_MD(dirname, struct=struct, top=top, deffnm=deffnm, mdp=mdp,
-                                       mainselection=mainselection, **kwargs)
+    setup_MD = gromacs.setup._setup_MD(
+        dirname,
+        struct=struct,
+        top=top,
+        deffnm=deffnm,
+        mdp=mdp,
+        mainselection=mainselection,
+        **kwargs
+    )
 
     setup_MD["dirname"] = dirname
 
@@ -308,8 +370,17 @@ def setup_md(struct, top, top_includes, deffnm="md", dirname=None, mdp="md_CHARM
 
     return MDManager(setup_MD)
 
-def setup_md_debug(struct, top, top_includes, deffnm="md", dirname=None, mdp="md_CHARMM27.mdp",
-             mainselection=None, **kwargs):
+
+def setup_md_debug(
+    struct,
+    top,
+    top_includes,
+    deffnm="md",
+    dirname=None,
+    mdp="md_CHARMM27.mdp",
+    mainselection=None,
+    **kwargs
+):
     """Set up Gromacs MD run..
 
     Additional itp files should be in the same directory as the top file.
@@ -389,25 +460,32 @@ def setup_md_debug(struct, top, top_includes, deffnm="md", dirname=None, mdp="md
 
     logging.debug("top_includes: {}".format(top_includes))
     for i in top_includes:
-        logging.debug("copying file {} to {}".format(i,dirname))
-        data_tofile(i,dirname=dirname)
+        logging.debug("copying file {} to {}".format(i, dirname))
+        data_tofile(i, dirname=dirname)
 
     # required from gromacswrapper, if this is not set, it will fail as it expects
     # a queing systme.
-    kwargs.setdefault('qname', None)
+    kwargs.setdefault("qname", None)
 
     # this stop grompp from failing if there are warning.
     # TODO, is this the best place to put this, should this be in in
     # config.py ????
-    kwargs.setdefault('maxwarn', -1)
+    kwargs.setdefault("maxwarn", -1)
 
     logging.info("using mdp template {} from key {}".format(config.templates[mdp], mdp))
     mdp = config.templates[mdp]
 
     logging.debug("calling _setup_MD with kwargs: {}".format(kwargs))
 
-    setup_MD = gromacs.setup._setup_MD(dirname, struct=struct, top=top, deffnm=deffnm, mdp=mdp,
-                                       mainselection=mainselection, **kwargs)
+    setup_MD = gromacs.setup._setup_MD(
+        dirname,
+        struct=struct,
+        top=top,
+        deffnm=deffnm,
+        mdp=mdp,
+        mainselection=mainselection,
+        **kwargs
+    )
 
     setup_MD["dirname"] = dirname
 
@@ -416,7 +494,15 @@ def setup_md_debug(struct, top, top_includes, deffnm="md", dirname=None, mdp="md
     return MDManager(setup_MD)
 
 
-def topology(struct, protein="protein", dirname="top", ff="charmm27", water="spc", ignh=True, **top_args):
+def topology(
+    struct,
+    protein="protein",
+    dirname="top",
+    ff="charmm27",
+    water="spc",
+    ignh=True,
+    **top_args
+):
     """
     Generate a topology for a given structure.
 
@@ -425,21 +511,34 @@ def topology(struct, protein="protein", dirname="top", ff="charmm27", water="spc
     """
 
     logging.info("autogenerating topology using pdb2gmx...")
-    pdb2gmx_args = {"ff":ff, "water":water, "ignh":ignh}
+    pdb2gmx_args = {"ff": ff, "water": water, "ignh": ignh}
     pdb2gmx_args.update(top_args)
     struct = data_tofile(struct, "src.gro", dirname=dirname)
-    result = gromacs.setup.topology(struct, protein, "system.top", dirname, **pdb2gmx_args)
+    result = gromacs.setup.topology(
+        struct, protein, "system.top", dirname, **pdb2gmx_args
+    )
     result["dirname"] = dirname
 
     return MDManager(result)
 
 
-def solvate(struct, top, top_includes=None, box = None,
-            concentration=0, cation='NA', anion='CL',
-            water='spc', solvent_name='SOL', with_membrane=False,
-            ndx = 'main.ndx', mainselection = '"Protein"',
-            dirname=None, deffnm='sol',
-            **kwargs):
+def solvate(
+    struct,
+    top,
+    top_includes=None,
+    box=None,
+    concentration=0,
+    cation="NA",
+    anion="CL",
+    water="spc",
+    solvent_name="SOL",
+    with_membrane=False,
+    ndx="main.ndx",
+    mainselection='"Protein"',
+    dirname=None,
+    deffnm="sol",
+    **kwargs
+):
     """Put protein into box, add water, add counter-ions.
 
     Currently this really only supports solutes in water. If you need
@@ -524,7 +623,10 @@ def solvate(struct, top, top_includes=None, box = None,
         # convert to nm
         box = struct.trajectory.ts.dimensions[:3] / 10.0
     else:
-        if not (isinstance(box, numpy.ndarray) or isinstance(box, list)) or len(box) != 3:
+        if (
+            not (isinstance(box, numpy.ndarray) or isinstance(box, list))
+            or len(box) != 3
+        ):
             raise ValueError("box must be either a length 3 numpy array or list")
 
     # build the substitution index.
@@ -549,32 +651,64 @@ def solvate(struct, top, top_includes=None, box = None,
     # dump the included itp files to the dir where solvation occurs.
     logging.debug("top_includes: {}".format(top_includes))
     for i in top_includes:
-        logging.debug("copying file {} to {}".format(i,dirname))
-        data_tofile(i,dirname=dirname)
+        logging.debug("copying file {} to {}".format(i, dirname))
+        data_tofile(i, dirname=dirname)
 
-    result = gromacs.setup.solvate(struct, top,
-            1.0, "triclinic",
-            concentration, cation, anion,
-            water, solvent_name, with_membrane,
-            ndx, mainselection,
-            dirname, box=list(box))
+    result = gromacs.setup.solvate(
+        struct,
+        top,
+        1.0,
+        "triclinic",
+        concentration,
+        cation,
+        anion,
+        water,
+        solvent_name,
+        with_membrane,
+        ndx,
+        mainselection,
+        dirname,
+        box=list(box),
+    )
     result["dirname"] = dirname
     result["top"] = top
     result["sub"] = sub
 
     return MDManager(result)
 
-def tsol(struct, top, box,
-         concentration=0, cation='NA', anion='CL',
-            water='spc', solvent_name='SOL', with_membrane=False,
-            ndx = 'main.ndx', mainselection = '"Protein"',
-            dirname=None, deffnm='sol',):
-    gromacs.setup.solvate(struct, top,
-            1.0, "triclinic",
-            concentration, cation, anion,
-            water, solvent_name, with_membrane,
-            ndx, mainselection,
-            dirname, box=list(box), angles=[90,90,90])
+
+def tsol(
+    struct,
+    top,
+    box,
+    concentration=0,
+    cation="NA",
+    anion="CL",
+    water="spc",
+    solvent_name="SOL",
+    with_membrane=False,
+    ndx="main.ndx",
+    mainselection='"Protein"',
+    dirname=None,
+    deffnm="sol",
+):
+    gromacs.setup.solvate(
+        struct,
+        top,
+        1.0,
+        "triclinic",
+        concentration,
+        cation,
+        anion,
+        water,
+        solvent_name,
+        with_membrane,
+        ndx,
+        mainselection,
+        dirname,
+        box=list(box),
+        angles=[90, 90, 90],
+    )
 
 
 def run_md(dirname, md_runner=MDrunner, **kwargs):
@@ -599,13 +733,65 @@ def run_md(dirname, md_runner=MDrunner, **kwargs):
     Result = namedtuple("Result", ["structs", "trajectories"])
 
     # pick out the relevant mdrun keywords from kwargs
-    mdrun_args = ["s","o","x","cpi","cpo","c","e","g","dhdl","field","table","tablep",
-                  "tableb","rerun","tpi","tpid","ei","eo","j","jo","ffout","devout",
-                  "runav","px","pf","mtx","dn","multidir","h","version","nice","deffnm",
-                  "xvg","pd","dd","nt","npme","ddorder",
-                  "ddcheck","rdd","rcon","dlb","dds","gcom","v","compact","seppot",
-                  "pforce","reprod","cpt","cpnum","append","maxh","multi","replex",
-                  "reseed","ionize"]
+    mdrun_args = [
+        "s",
+        "o",
+        "x",
+        "cpi",
+        "cpo",
+        "c",
+        "e",
+        "g",
+        "dhdl",
+        "field",
+        "table",
+        "tablep",
+        "tableb",
+        "rerun",
+        "tpi",
+        "tpid",
+        "ei",
+        "eo",
+        "j",
+        "jo",
+        "ffout",
+        "devout",
+        "runav",
+        "px",
+        "pf",
+        "mtx",
+        "dn",
+        "multidir",
+        "h",
+        "version",
+        "nice",
+        "deffnm",
+        "xvg",
+        "pd",
+        "dd",
+        "nt",
+        "npme",
+        "ddorder",
+        "ddcheck",
+        "rdd",
+        "rcon",
+        "dlb",
+        "dds",
+        "gcom",
+        "v",
+        "compact",
+        "seppot",
+        "pforce",
+        "reprod",
+        "cpt",
+        "cpnum",
+        "append",
+        "maxh",
+        "multi",
+        "replex",
+        "reseed",
+        "ionize",
+    ]
     kwargs = dict([(i, kwargs[i]) for i in kwargs.keys() if i in mdrun_args])
 
     # figure out what the output file is, try set default output format to pdb
@@ -644,9 +830,12 @@ def run_md(dirname, md_runner=MDrunner, **kwargs):
     notfound_structs = [s for s in structs if not os.path.isfile(s)]
 
     for s in notfound_structs:
-        logging.warn("guessed output file name {} not found, is a problem????".format(s))
+        logging.warn(
+            "guessed output file name {} not found, is a problem????".format(s)
+        )
 
     return Result(found_structs, trajectories)
+
 
 def run_md_debug(dirname, md_runner=MDrunner, **kwargs):
     """
@@ -670,13 +859,65 @@ def run_md_debug(dirname, md_runner=MDrunner, **kwargs):
     Result = namedtuple("Result", ["structs", "trajectories"])
 
     # pick out the relevant mdrun keywords from kwargs
-    mdrun_args = ["s","o","x","cpi","cpo","c","e","g","dhdl","field","table","tablep",
-                  "tableb","rerun","tpi","tpid","ei","eo","j","jo","ffout","devout",
-                  "runav","px","pf","mtx","dn","multidir","h","version","nice","deffnm",
-                  "xvg","pd","dd","nt","npme","ddorder",
-                  "ddcheck","rdd","rcon","dlb","dds","gcom","v","compact","seppot",
-                  "pforce","reprod","cpt","cpnum","append","maxh","multi","replex",
-                  "reseed","ionize"]
+    mdrun_args = [
+        "s",
+        "o",
+        "x",
+        "cpi",
+        "cpo",
+        "c",
+        "e",
+        "g",
+        "dhdl",
+        "field",
+        "table",
+        "tablep",
+        "tableb",
+        "rerun",
+        "tpi",
+        "tpid",
+        "ei",
+        "eo",
+        "j",
+        "jo",
+        "ffout",
+        "devout",
+        "runav",
+        "px",
+        "pf",
+        "mtx",
+        "dn",
+        "multidir",
+        "h",
+        "version",
+        "nice",
+        "deffnm",
+        "xvg",
+        "pd",
+        "dd",
+        "nt",
+        "npme",
+        "ddorder",
+        "ddcheck",
+        "rdd",
+        "rcon",
+        "dlb",
+        "dds",
+        "gcom",
+        "v",
+        "compact",
+        "seppot",
+        "pforce",
+        "reprod",
+        "cpt",
+        "cpnum",
+        "append",
+        "maxh",
+        "multi",
+        "replex",
+        "reseed",
+        "ionize",
+    ]
     kwargs = dict([(i, kwargs[i]) for i in kwargs.keys() if i in mdrun_args])
 
     # figure out what the output file is, try set default output format to pdb
@@ -702,8 +943,8 @@ def run_md_debug(dirname, md_runner=MDrunner, **kwargs):
 
     # create an MDRunner which changes to the specifiec dirname, and
     # calls mdrun in that dir, then returns to the current dir.
-    #runner = md_runner(dirname, **kwargs)
-    #runner.run_check()
+    # runner = md_runner(dirname, **kwargs)
+    # runner.run_check()
 
     trajectories = [os.path.abspath(trr) for trr in glob.glob(dirname + "/*.trr")]
 
@@ -711,9 +952,12 @@ def run_md_debug(dirname, md_runner=MDrunner, **kwargs):
     notfound_structs = [s for s in structs if not os.path.isfile(s)]
 
     for s in notfound_structs:
-        logging.warn("guessed output file name {} not found, is a problem????".format(s))
+        logging.warn(
+            "guessed output file name {} not found, is a problem????".format(s)
+        )
 
     return Result(found_structs, trajectories)
+
 
 def check_main_index(struct):
     """
@@ -737,17 +981,25 @@ def check_main_index(struct):
     for g in groups:
         if g["name"] == "__main__":
             if g["natoms"] == len(struct.atoms):
-                print("Autogenerated index group __main__ has same number of atoms as universe.atoms")
+                print(
+                    "Autogenerated index group __main__ has same number of atoms as universe.atoms"
+                )
                 shutil.rmtree(dirname, ignore_errors=True)
                 return True
             else:
-                msg = "Autogenerated index group __main__ has" + str(g["natoms"]) + \
-                " atoms, but the given universe structure has " + str(len(struct.atoms)) + \
-                " atoms. Check structure and verify that the __main__ group gromacs.utilities.make_main_index" + \
-                " returns has the same number of atoms."
+                msg = (
+                    "Autogenerated index group __main__ has"
+                    + str(g["natoms"])
+                    + " atoms, but the given universe structure has "
+                    + str(len(struct.atoms))
+                    + " atoms. Check structure and verify that the __main__ group gromacs.utilities.make_main_index"
+                    + " returns has the same number of atoms."
+                )
                 raise ValueError(msg)
 
-    raise ValueError("gromacs.setup.make_main_index appears to have worked, but there was no __main__ group")
+    raise ValueError(
+        "gromacs.setup.make_main_index appears to have worked, but there was no __main__ group"
+    )
 
 
 def top_includes(top, include_dirs=["."]):
@@ -759,13 +1011,13 @@ def top_includes(top, include_dirs=["."]):
     @return: a list of absolute paths for files find in the include paths.
     """
     includes = []
-    r=re.compile("^\s*#\s*include\s*\"(.*?)\"\s*")
+    r = re.compile('^\s*#\s*include\s*"(.*?)"\s*')
 
     logging.debug("scaning includes for top level topology file {}".format(top))
 
     def isfile(f):
         for d in include_dirs:
-            j=os.path.join(d, f)
+            j = os.path.join(d, f)
             if os.path.isfile(j):
                 return j
         return False
@@ -773,33 +1025,33 @@ def top_includes(top, include_dirs=["."]):
     def get_includes(f):
         logging.debug("recursivly scanning includes for file {}".format(f))
 
-
         with open(f) as of:
             for line in of:
                 match = r.match(line)
                 if match:
-                    f=isfile(match.group(1))
+                    f = isfile(match.group(1))
                     if f:
                         # first check if we have been here already (cyclic includes)
                         try:
                             includes.index(f)
-                            logging.warn("encountered cyclic includes, the file {} has already been included"
-                                         ", unknown if this will work with GROMACS???".format(f))
-                            logging.warn("ignoring file {} as its already included".format(f))
+                            logging.warn(
+                                "encountered cyclic includes, the file {} has already been included"
+                                ", unknown if this will work with GROMACS???".format(f)
+                            )
+                            logging.warn(
+                                "ignoring file {} as its already included".format(f)
+                            )
                         except ValueError:
                             # ugly way of checking if an item is in a list, but hey, geuss this is the Python way...
                             # we've not encountered this file before, so good to go.
                             includes.append(f)
                             get_includes(f)
                     else:
-                        logging.debug("found include file {}, but it is not in the include path".format(match.group(1)))
+                        logging.debug(
+                            "found include file {}, but it is not in the include path".format(
+                                match.group(1)
+                            )
+                        )
 
     get_includes(top)
     return includes
-
-
-
-
-
-
-

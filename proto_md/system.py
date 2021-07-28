@@ -69,28 +69,28 @@ Config Dictionary Specification
 """
 
 
-import logging
-logging.basicConfig(format='%(asctime)s:%(levelname)s:%(funcName)s:%(message)s', filename='proto.log',level=logging.DEBUG)
-
-
-from numpy import array, zeros, reshape, conjugate, \
-                  real, max, fromfile, uint8
-import numpy.random
-import MDAnalysis                       #@UnresolvedImport
-import dynamics
-
-import h5py                             #@UnresolvedImport
-import md
-import util
+from .config import *
+from . import config
+import MDAnalysis.topology.tables
 import time
+from . import util
+import h5py
+from . import md
+from . import dynamics
+import MDAnalysis
+import numpy.random
+from numpy import array, zeros, reshape, conjugate, real, max, fromfile, uint8
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s:%(levelname)s:%(funcName)s:%(message)s",
+    filename="proto.log",
+    level=logging.DEBUG,
+)
+
 
 # change MDAnalysis table to read carbon correctly
-import MDAnalysis.topology.tables       #@UnresolvedImport
-MDAnalysis.topology.tables.atomelements["C0"]="C"
-
-import config
-from config import *
-
+MDAnalysis.topology.tables.atomelements["C0"] = "C"
 
 
 class Timestep(object):
@@ -98,6 +98,7 @@ class Timestep(object):
     each timestep is storred in a hdf group, this class wraps
     the group and provides properties to access the values.
     """
+
     ATOMIC_MINIMIZED_POSITIONS = "atomic_minimized_positions"
     ATOMIC_EQUILIBRATED_POSITIONS = "atomic_equilibrated_positions"
     ATOMIC_STARTING_POSITIONS = "atomic_starting_positions"
@@ -112,7 +113,8 @@ class Timestep(object):
     def __create_property(self, name):
         def getter(self):
             return self._group[name][()]
-        def setter(self,val):
+
+        def setter(self, val):
             try:
                 del self._group[name]
             except KeyError:
@@ -159,8 +161,8 @@ class Timestep(object):
     def flush(self):
         self._group.file.flush()
 
-class System(object):
 
+class System(object):
 
     """
     @ivar subsystems: a list of subsystems, remains constant so long
@@ -169,11 +171,23 @@ class System(object):
 
     # define the __slots__ class variable, this helps preven typos by raising an error if a
     # ivar is set that is not one of these here.
-    __slots__ = ["hdf", "config", "universe", "_box", "ncgs", "subsystems", "cg_positions", "cg_velocities", 
-		 "cg_forces", "concentration", "anion", "cation"]
+    __slots__ = [
+        "hdf",
+        "config",
+        "universe",
+        "_box",
+        "ncgs",
+        "subsystems",
+        "cg_positions",
+        "cg_velocities",
+        "cg_forces",
+        "concentration",
+        "anion",
+        "cation",
+    ]
 
     def __init__(self, fid, mode="r"):
-        """ Create a system object
+        """Create a system object
 
         Args:
         fid: file name of a configuration hdf file
@@ -187,19 +201,22 @@ class System(object):
 
         logging.info("creating System, fid={}".format(fid))
 
-        fmode = 'a' if (mode == 'a' or mode == 'd') else 'r'
+        fmode = "a" if (mode == "a" or mode == "d") else "r"
         self.hdf = h5py.File(fid, fmode)
         self.config = self.hdf[CONFIG].attrs
         self._box = self.config[BOX]
-	self.concentration = self.config[CONCENTRATION]
-	self.anion = self.config[ANION]
-	self.cation = self.config[CATION]
+        self.concentration = self.config[CONCENTRATION]
+        self.anion = self.config[ANION]
+        self.cation = self.config[CATION]
 
         # if there is a current timestep, keep it around for debugging purposes
         if self.hdf.id.links.exists(CURRENT_TIMESTEP):
-            print("WARNING, found previous \"current_timestep\" key, this means that a previous simulation likely crashed")
-            logging.warn("found previous \"current_timestep\" key, this means that a previous simulation likely crashed")
-
+            print(
+                'WARNING, found previous "current_timestep" key, this means that a previous simulation likely crashed'
+            )
+            logging.warn(
+                'found previous "current_timestep" key, this means that a previous simulation likely crashed'
+            )
 
         # load the universe object from either the last timestep, or from the src_files
         # its expensive to create a universe, so keep it around for the lifetime
@@ -212,12 +229,18 @@ class System(object):
 
         factory = util.get_class(self.config[SUBSYSTEM_FACTORY])
 
-	# This is imp to get around the HDF - dictionary incompatibility
-	subsystem_args_tuple = tuple([tuple(i) for i in self.config[SUBSYSTEM_ARGS]])
-	subsystem_args_dict = dict((x, eval(y)) for x, y in subsystem_args_tuple)
+        # This is imp to get around the HDF - dictionary incompatibility
+        subsystem_args_tuple = tuple([tuple(i) for i in self.config[SUBSYSTEM_ARGS]])
+        subsystem_args_dict = dict((x, eval(y)) for x, y in subsystem_args_tuple)
 
-        self.ncgs, self.subsystems = factory(self, self.config[SUBSYSTEM_SELECTS], **subsystem_args_dict)
-        logging.debug("using {} cg variables for each {} subsystems".format(self.ncgs, len(self.subsystems)))
+        self.ncgs, self.subsystems = factory(
+            self, self.config[SUBSYSTEM_SELECTS], **subsystem_args_dict
+        )
+        logging.debug(
+            "using {} cg variables for each {} subsystems".format(
+                self.ncgs, len(self.subsystems)
+            )
+        )
 
         # notify subsystems, we have a new universe
         [s.universe_changed(self.universe) for s in self.subsystems]
@@ -225,15 +248,15 @@ class System(object):
         md_nensemble = self.config[MULTI]
 
         # number of data points in trajectory, md steps / output interval
-        md_nsteps = int(self.config[MD_STEPS])/int(self.md_args[NSTXOUT])
+        md_nsteps = int(self.config[MD_STEPS]) / int(self.md_args[NSTXOUT])
 
         # number of subsystems
         nrs = len(self.subsystems)
 
         # cg: nensembe x n segment x n_step x n_cg
-        self.cg_positions  = zeros((md_nensemble,nrs,md_nsteps,self.ncgs))
-        self.cg_forces     = zeros((md_nensemble,nrs,md_nsteps,self.ncgs))
-        self.cg_velocities = zeros((md_nensemble,nrs,md_nsteps,self.ncgs))
+        self.cg_positions = zeros((md_nensemble, nrs, md_nsteps, self.ncgs))
+        self.cg_forces = zeros((md_nensemble, nrs, md_nsteps, self.ncgs))
+        self.cg_velocities = zeros((md_nensemble, nrs, md_nsteps, self.ncgs))
 
     @property
     def struct(self):
@@ -257,7 +280,7 @@ class System(object):
 
     @property
     def beta(self):
-        return 1/(KB*self.temperature)
+        return 1 / (KB * self.temperature)
 
     @property
     def mn_args(self):
@@ -298,7 +321,7 @@ class System(object):
         finds a file stored as an hdf key. This first looks if there is a 'current_timestep',
         if so uses it, otherwise, looks in 'src_files'.
         """
-        #TODO imporove error checking and handling.
+        # TODO imporove error checking and handling.
         if self.hdf.id.links.exists(CURRENT_TIMESTEP):
             file_key = CURRENT_TIMESTEP + "/" + file_key
         else:
@@ -319,7 +342,6 @@ class System(object):
         else:
             return None
 
-
     def begin_timestep(self):
         """
         Creates a new empty current_timestep. If one currently exists, it is deleted.
@@ -338,7 +360,9 @@ class System(object):
         """
         # if there is a current timestep, we assume its garbage and delete it
         if self.hdf.id.links.exists(CURRENT_TIMESTEP):
-            logging.warn("found previous \"current_timestep\" key, this means that end_timestep was not called.")
+            logging.warn(
+                'found previous "current_timestep" key, this means that end_timestep was not called.'
+            )
             del self.hdf[CURRENT_TIMESTEP]
 
         # create a new current_timestep group, starting time now.
@@ -349,22 +373,27 @@ class System(object):
         timestep_number = 0
         if last:
             # link the starting positions to the previous timesteps final positions
-            current_group.id.links.create_soft(Timestep.ATOMIC_STARTING_POSITIONS,
-                                      last._group.name + "/" + Timestep.ATOMIC_FINAL_POSITIONS)
+            current_group.id.links.create_soft(
+                Timestep.ATOMIC_STARTING_POSITIONS,
+                last._group.name + "/" + Timestep.ATOMIC_FINAL_POSITIONS,
+            )
             src_files = last._group
             timestep_number = last.timestep + 1
         else:
             # this is the first timestep, so set start positions to the starting
             # universe struct.
-            current_group[Timestep.ATOMIC_STARTING_POSITIONS] = self.universe.atoms.positions
+            current_group[
+                Timestep.ATOMIC_STARTING_POSITIONS
+            ] = self.universe.atoms.positions
             src_files = self.hdf[SRC_FILES]
 
         logging.info("starting timestep {}".format(timestep_number))
 
         # link file data into current
         for f in FILE_DATA_LIST:
-            util.hdf_linksrc(self.hdf, CURRENT_TIMESTEP + "/" + f, src_files.name + "/" + f)
-
+            util.hdf_linksrc(
+                self.hdf, CURRENT_TIMESTEP + "/" + f, src_files.name + "/" + f
+            )
 
     def end_timestep(self):
         """
@@ -379,13 +408,12 @@ class System(object):
         # find the last timestep, and set this one to the next one, and move it there.
         timesteps = [int(k) for k in self.hdf[TIMESTEPS].keys()]
         prev = -1 if len(timesteps) == 0 else max(timesteps)
-        finished = TIMESTEPS + "/" + str(prev+1)
+        finished = TIMESTEPS + "/" + str(prev + 1)
         self.hdf.id.move(CURRENT_TIMESTEP, finished)
 
         self.hdf.flush()
 
-        logging.info("completed timestep {}".format(prev+1))
-
+        logging.info("completed timestep {}".format(prev + 1))
 
     @property
     def current_timestep(self):
@@ -423,8 +451,7 @@ class System(object):
         timesteps.sort()
         return [Timestep(self.hdf[TIMESTEPS + "/" + str(ts)]) for ts in timesteps]
 
-
-    def _create_universe(self, key = None):
+    def _create_universe(self, key=None):
         """
         Creates a universe object from the most recent timestep, or if this is the first
         timestep, loads from the 'src_files' key.
@@ -432,10 +459,16 @@ class System(object):
 
         last = self.last_timestep
         if last:
-            logging.info("loading universe from most recent timestep of {}".format(last._group.name))
+            logging.info(
+                "loading universe from most recent timestep of {}".format(
+                    last._group.name
+                )
+            )
             return last.create_universe()
         else:
-            logging.info("_universe_from_hdf, struct.gro not in current frame, loading from src_files")
+            logging.info(
+                "_universe_from_hdf, struct.gro not in current frame, loading from src_files"
+            )
             data = array(self.hdf[SRC_FILES + "/" + STRUCT_PDB])
 
             with tempfile.NamedTemporaryFile(suffix=".gro") as f:
@@ -447,7 +480,6 @@ class System(object):
                 f.file.flush()
                 u = MDAnalysis.Universe(f.name)
                 return u
-
 
     def translate(self, cg_translate):
         """
@@ -464,11 +496,11 @@ class System(object):
         # n_cg * n_ss
         cg_translate = cg_translate.reshape(len(self.subsystems) * self.ncgs)
 
-        #write to ts
+        # write to ts
         self.current_timestep.cg_translate = cg_translate
 
         for i, subsys in enumerate(self.subsystems):
-            subsys.translate(cg_translate[i*self.ncgs:i*self.ncgs+self.ncgs]) 
+            subsys.translate(cg_translate[i * self.ncgs : i * self.ncgs + self.ncgs])
         # subsys.translate updates the atomic positions in each subsystem
 
         self.current_timestep.atomic_final_positions = self.universe.atoms.positions
@@ -487,17 +519,19 @@ class System(object):
         else:
             logging.info("setting up equilibration for solvated struct, top")
 
-	eq_args = self.eq_args
-	eq_args['ref_t'] = self.config[TEMPERATURE]
-	eq_args['gen-temp'] = self.config[TEMPERATURE]
+        eq_args = self.eq_args
+        eq_args["ref_t"] = self.config[TEMPERATURE]
+        eq_args["gen-temp"] = self.config[TEMPERATURE]
 
-        return md.setup_md(struct=struct, \
-                               top=top, \
-                               top_includes=self.top_includes, \
-                               nsteps=self.config[EQ_STEPS], \
-                               deffnm="eq", \
-                               mainselection=self.mainselection, \
-                               **eq_args)
+        return md.setup_md(
+            struct=struct,
+            top=top,
+            top_includes=self.top_includes,
+            nsteps=self.config[EQ_STEPS],
+            deffnm="eq",
+            mainselection=self.mainselection,
+            **eq_args
+        )
 
     def setup_md(self, struct=None, top=None):
         """
@@ -505,7 +539,7 @@ class System(object):
 
         @return an MDManager object loaded with the trr to run an equilibration.
         """
-        logging.debug("struct = {}, top = {}".format(struct, top ))
+        logging.debug("struct = {}, top = {}".format(struct, top))
 
         if struct is None or top is None:
             struct = self.universe
@@ -514,18 +548,20 @@ class System(object):
         else:
             logging.info("setting up md for solvated struct, top")
 
-	md_args = self.md_args
-	md_args['ref_t'] = self.config[TEMPERATURE]
-	md_args['gen-temp'] = self.config[TEMPERATURE]
+        md_args = self.md_args
+        md_args["ref_t"] = self.config[TEMPERATURE]
+        md_args["gen-temp"] = self.config[TEMPERATURE]
 
-        return md.setup_md(struct=struct, \
-                               top=top, \
-                               top_includes=self.top_includes, \
-                               nsteps=self.config[MD_STEPS], \
-                               multi=self.config[MULTI], \
-                               deffnm="md", \
-                               mainselection=self.mainselection, \
-                               **md_args)
+        return md.setup_md(
+            struct=struct,
+            top=top,
+            top_includes=self.top_includes,
+            nsteps=self.config[MD_STEPS],
+            multi=self.config[MULTI],
+            deffnm="md",
+            mainselection=self.mainselection,
+            **md_args
+        )
 
     def equilibrate(self, struct=None, top=None, sub=None, **args):
         """
@@ -544,9 +580,9 @@ class System(object):
             subsystems are notified.
             equililibriated state is written to current_timestep.
         """
-        logging.debug( \
-                       "struct = {}, top = {}, sub = {}, args = {}".format( \
-                       struct, top , sub , args))
+        logging.debug(
+            "struct = {}, top = {}, sub = {}, args = {}".format(struct, top, sub, args)
+        )
         result = None
 
         if struct is None or top is None:
@@ -560,9 +596,13 @@ class System(object):
             mdres = md.run_md(result.dirname, **result)
             result["struct"] = mdres.structs[0]
             result["sub"] = sub
-            self.universe.atoms.positions = util.stripped_positions(mdres.structs[0], sub)
+            self.universe.atoms.positions = util.stripped_positions(
+                mdres.structs[0], sub
+            )
 
-        self.current_timestep.atomic_equilibrated_positions = self.universe.atoms.positions
+        self.current_timestep.atomic_equilibrated_positions = (
+            self.universe.atoms.positions
+        )
         [s.equilibrated() for s in self.subsystems]
 
         return result
@@ -577,10 +617,9 @@ class System(object):
         @postcondition: self.cg_positions, self.cg_forces, self.cg_velocities[:]
             are populated with statistics collected from the md runs.
         """
-        logging.debug( \
-                       "struct = {}, top = {}, sub = {}, args = {}".format( \
-                        struct, top , sub , args))
-
+        logging.debug(
+            "struct = {}, top = {}, sub = {}, args = {}".format(struct, top, sub, args)
+        )
 
         with self.setup_md(struct, top) as mdsetup:
             mdres = md.run_md(mdsetup.dirname, **mdsetup)
@@ -613,14 +652,21 @@ class System(object):
                 for tsi, _ in enumerate(self.universe.trajectory):
                     if tsi < self.cg_velocities.shape[2]:
                         for si, s in enumerate(self.subsystems):
-                            pos,vel,frc = s.frame()
-		
-                            self.cg_positions [fi,si,tsi,:] = pos
-                            self.cg_velocities[fi,si,tsi,:] = vel
-                            self.cg_forces    [fi,si,tsi,:] = frc
+                            pos, vel, frc = s.frame()
 
-                            if(tsi % 25 == 0):
-                                print("processing frame {},\t{}%".format(tsi, 100.0*float(tsi)/float(self.cg_velocities.shape[2])))
+                            self.cg_positions[fi, si, tsi, :] = pos
+                            self.cg_velocities[fi, si, tsi, :] = vel
+                            self.cg_forces[fi, si, tsi, :] = frc
+
+                            if tsi % 25 == 0:
+                                print(
+                                    "processing frame {},\t{}%".format(
+                                        tsi,
+                                        100.0
+                                        * float(tsi)
+                                        / float(self.cg_velocities.shape[2]),
+                                    )
+                                )
 
             # done with trajectories, load original contents of universe back
             self.universe.load_new(tmp.name)
@@ -631,7 +677,6 @@ class System(object):
         timestep.cg_velocities = self.cg_velocities
         timestep.cg_forces = self.cg_forces
         timestep.flush()
-
 
     def topology_changed(self):
         """
@@ -651,11 +696,17 @@ class System(object):
             topology files, as well as a 'sub' index which will be used to later
             pick out the original unsolvated atoms.
         """
-        return md.solvate(struct=self.universe, top=self.top, top_includes = self.top_includes,
-                          mainselection=self.mainselection, concentration=self.concentration, cation=self.cation, 
-			  anion=self.anion)
+        return md.solvate(
+            struct=self.universe,
+            top=self.top,
+            top_includes=self.top_includes,
+            mainselection=self.mainselection,
+            concentration=self.concentration,
+            cation=self.cation,
+            anion=self.anion,
+        )
 
-    def minimize(self, struct = None, top = None, sub = None, **args):
+    def minimize(self, struct=None, top=None, sub=None, **args):
         """
         Take the a starting structure and minimize it via md.
 
@@ -678,34 +729,40 @@ class System(object):
             with the minimized solvated structure / top is returned.
         """
 
-        logging.debug( \
-                       "struct = {}, top = {}, sub = {}, args = {}".format( \
-                       struct, top , sub , args))
+        logging.debug(
+            "struct = {}, top = {}, sub = {}, args = {}".format(struct, top, sub, args)
+        )
 
         result = None
 
         if struct is None or top is None:
             logging.info("performing minimization with self.universe and self.top")
-            with md.minimize(struct=self.universe, \
-                                 top=self.top, \
-                                 top_includes=self.top_includes, \
-                                 nsteps=self.config[MN_STEPS], \
-                                 deffnm="mn", \
-                                 **self.mn_args) as mn:
+            with md.minimize(
+                struct=self.universe,
+                top=self.top,
+                top_includes=self.top_includes,
+                nsteps=self.config[MN_STEPS],
+                deffnm="mn",
+                **self.mn_args
+            ) as mn:
 
                 self.universe.load_new(mn["struct"])
         else:
             if sub is None or len(sub) != len(self.universe.atoms):
                 raise ValueError("sub is either None or is not the correct length")
             logging.info("performing minimization with solvated structure")
-            result = md.minimize(struct=struct, \
-                                     top=top, \
-                                     top_includes = self.top_includes, \
-                                     nsteps=self.config[MN_STEPS], \
-                                     deffnm="mn", \
-                                     **self.mn_args)
+            result = md.minimize(
+                struct=struct,
+                top=top,
+                top_includes=self.top_includes,
+                nsteps=self.config[MN_STEPS],
+                deffnm="mn",
+                **self.mn_args
+            )
             result["sub"] = sub
-            self.universe.atoms.positions = util.stripped_positions(result["struct"], sub)
+            self.universe.atoms.positions = util.stripped_positions(
+                result["struct"], sub
+            )
 
         # done with external md
         self.current_timestep.atomic_minimized_positions = self.universe.atoms.positions
@@ -714,8 +771,7 @@ class System(object):
 
         return result
 
-
-    def tofile(self,traj):
+    def tofile(self, traj):
         """
         Write the system to a conventional MD file format, either pdb, or trr.
 
@@ -732,14 +788,14 @@ class System(object):
         if ext.endswith("pdb"):
             for ts in self.timesteps:
                 universe = ts.create_universe()
-                writer = MDAnalysis.Writer(traj,numatoms=len(universe.atoms))
+                writer = MDAnalysis.Writer(traj, numatoms=len(universe.atoms))
                 writer.write(universe)
                 return
         else:
             for ts in self.timesteps:
                 if universe is None:
                     universe = ts.create_universe()
-                    writer = MDAnalysis.Writer(traj,numatoms=len(universe.atoms))
+                    writer = MDAnalysis.Writer(traj, numatoms=len(universe.atoms))
                 else:
                     universe.atoms.positions = ts.atomic_starting_positions
                 writer.write(universe)
@@ -765,7 +821,12 @@ class System(object):
         """
 
         # check to see if the object can be used at a timestep object
-        attrs = ["cg_positions", "cg_velocities", "cg_forces", "atomic_starting_positions"]
+        attrs = [
+            "cg_positions",
+            "cg_velocities",
+            "cg_forces",
+            "atomic_starting_positions",
+        ]
         ists = [hasattr(ts, attr) for attr in attrs].count(True) == len(attrs)
 
         if ists:
@@ -794,4 +855,6 @@ class System(object):
         try:
             return self._load_timestep(self.timesteps[int(ts)])
         except ValueError:
-            raise ValueError("Assumed timestep was an index as it did not have required attributes, but could not convert to integer")
+            raise ValueError(
+                "Assumed timestep was an index as it did not have required attributes, but could not convert to integer"
+            )

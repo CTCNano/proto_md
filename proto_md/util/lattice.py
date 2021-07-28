@@ -1,86 +1,90 @@
-'''
+"""
 Created on Dec 3, 2012
 
 @author: andy
-'''
+"""
 
 from numpy import arange, array, ceil, ones, zeros
 from numpy.linalg import norm
-from MDAnalysis.coordinates.PDB import PrimitivePDBWriter as writer
+from MDAnalysis.coordinates.PDB import PDBWriter as writer
 import MDAnalysis as mda
 import gromacs
 import gromacs.setup
 import logging
-import h5py #@UnresolvedImport
+import h5py
 
 
-k=0.0083144621
+k = 0.0083144621
+
 
 def fcc_sphere(a, radius):
     points = []
-    side_len = ceil(2.*radius/a)*a
-    pc = arange(0.0, side_len+a, a)
-    fcc = arange(a/2., side_len, a)
-         
+    side_len = ceil(2.0 * radius / a) * a
+    pc = arange(0.0, side_len + a, a)
+    fcc = arange(a / 2.0, side_len, a)
+
     # make the primitive cubic points
     for x in pc:
         for y in pc:
-            pts = zeros((len(pc),3))
-            pts[:,0] = x
-            pts[:,1] = y
-            pts[:,2] = pc
+            pts = zeros((len(pc), 3))
+            pts[:, 0] = x
+            pts[:, 1] = y
+            pts[:, 2] = pc
             points.append(pts)
-            
+
     # make the face centered cubic points
-    #"""
+    # """
     for x in fcc:
         for y in fcc:
-            pts = zeros((len(pc),3))
-            pts[:,0] = x
-            pts[:,1] = y
-            pts[:,2] = pc
+            pts = zeros((len(pc), 3))
+            pts[:, 0] = x
+            pts[:, 1] = y
+            pts[:, 2] = pc
             points.append(pts)
-            
+
     for y in fcc:
         for z in fcc:
-            pts = zeros((len(pc),3))
-            pts[:,0] = pc
-            pts[:,1] = y
-            pts[:,2] = z
+            pts = zeros((len(pc), 3))
+            pts[:, 0] = pc
+            pts[:, 1] = y
+            pts[:, 2] = z
             points.append(pts)
-            
+
     for z in fcc:
         for x in fcc:
-            pts = zeros((len(pc),3))
-            pts[:,0] = x
-            pts[:,1] = pc
-            pts[:,2] = z
+            pts = zeros((len(pc), 3))
+            pts[:, 0] = x
+            pts[:, 1] = pc
+            pts[:, 2] = z
             points.append(pts)
-    #"""
-    
-    # make a npts * 3 array out of the list    
-         
-    points = array(points)    
-    points=points.reshape(points.shape[0]*points.shape[1],3)
-    
+    # """
+
+    # make a npts * 3 array out of the list
+
+    points = array(points)
+    points = points.reshape(points.shape[0] * points.shape[1], 3)
+
     # there is certainly a cleaner way of doing this...
-    origin = array([side_len/2.,side_len/2.,side_len/2.])
-    points = array([x-origin for x in points if norm(x - origin) <= radius])
-    
-    return points 
+    origin = array([side_len / 2.0, side_len / 2.0, side_len / 2.0])
+    points = array([x - origin for x in points if norm(x - origin) <= radius])
+
+    return points
+
 
 def test(a, radius):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
+
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    
-    pts=fcc_sphere(a, radius)
-        
-    ax.scatter(pts[:,0],pts[:,1],pts[:,2])
+    ax = fig.add_subplot(111, projection="3d")
+
+    pts = fcc_sphere(a, radius)
+
+    ax.scatter(pts[:, 0], pts[:, 1], pts[:, 2])
     plt.show()
-    
-def make_index(struct, ndx='main.ndx', oldndx=None):
+
+
+def make_index(struct, ndx="main.ndx", oldndx=None):
     """Make index file with the special groups.
 
     This routine adds the group __main__ and the group __environment__
@@ -115,31 +119,31 @@ def make_index(struct, ndx='main.ndx', oldndx=None):
     added later as could be other symbolic groups such as __membrane__.
     """
 
-    #logging.info("Building the main index file %(ndx)r..." % vars())
-    
+    # logging.info("Building the main index file %(ndx)r..." % vars())
+
     # pass 1: select
     # empty command '' important to get final list of groups
-    rc,out,nothing = gromacs.make_ndx(f=struct, n=oldndx, o=ndx, stdout=False,  #@UndefinedVariable
-                                      input=('q'))
-    #groups = gromacs.cbook.parse_ndxlist(out)
-    #last = len(groups) - 1
-    #assert last == groups[-1]['nr']
+    rc, out, nothing = gromacs.make_ndx(
+        f=struct, n=oldndx, o=ndx, stdout=False, input=("q")  # @UndefinedVariable
+    )
+    # groups = gromacs.cbook.parse_ndxlist(out)
+    # last = len(groups) - 1
+    # assert last == groups[-1]['nr']
 
     # pass 2:
     # 1) last group is __main__
     # 2) __environment__ is everything else (eg SOL, ions, ...)
-    #rc,out,nothing = gromacs.make_ndx(f=struct, n=ndx, o=ndx,
+    # rc,out,nothing = gromacs.make_ndx(f=struct, n=ndx, o=ndx,
     #                                  stdout=False,
     #                                  input=('name %d __main__' % last,
     #                                         '! "__main__"',  # is now group last+1
     #                                         'name %d __environment__' % (last+1),
     #                                         '', 'q'))
-    
-    return gromacs.cbook.parse_ndxlist(out)
-            
 
-            
-top_src="""
+    return gromacs.cbook.parse_ndxlist(out)
+
+
+top_src = """
 #include "charmm36.ff/forcefield.itp"
 #include "charmm36.ff/spc.itp"
 
@@ -168,46 +172,58 @@ Gold in water
 [ molecules ]
 ; Compound        #mols
 """
-            
-            
-    
-def test2(a,radius,box=100.0,fbase=None):
+
+
+def test2(a, radius, box=100.0, fbase=None):
     # l.test2(5.0797,15)
 
     if fbase is None:
-        fbase = "{}_{}".format(box,radius)
-    
+        fbase = "{}_{}".format(box, radius)
+
     top = "{}.top".format(fbase)
     struct = "{}.pdb".format(fbase)
     sol = "{}.sol.pdb".format(fbase)
     ndx = "{}.ndx".format(fbase)
-    
-    origin = box/2.
-    pts=fcc_sphere(a, radius)
-    w=writer("{}.pdb".format(fbase))
-    w.CRYST1([box,box,box,90.00,90.00,90.00])
-    
-    
-    for index,atom in enumerate(pts):
-        w.ATOM(serial=index+1, name="AU", resName="NP", resSeq=1, 
-               chainID="A", segID="AUNP", element="AU",
-               x=atom[0]+origin, y=atom[1]+origin, z=atom[2]+origin)
-        
+
+    origin = box / 2.0
+    pts = fcc_sphere(a, radius)
+    w = writer("{}.pdb".format(fbase))
+    w.CRYST1([box, box, box, 90.00, 90.00, 90.00])
+
+    for index, atom in enumerate(pts):
+        w.ATOM(
+            serial=index + 1,
+            name="AU",
+            resName="NP",
+            resSeq=1,
+            chainID="A",
+            segID="AUNP",
+            element="AU",
+            x=atom[0] + origin,
+            y=atom[1] + origin,
+            z=atom[2] + origin,
+        )
+
     w.close()
-    
-    #make_index("{}.pdb".format(fbase), "{}.ndx".format(fbase))
-    
+
+    # make_index("{}.pdb".format(fbase), "{}.ndx".format(fbase))
+
     with file(top, "w") as t:
         t.write(top_src)
         t.write("Au    {}\n".format(pts.shape[0]))
-        
-    gromacs.genbox(p=top, cp=struct, cs="spc216.gro", o=sol, vdwd="0.15")       #@UndefinedVariable
-    
-    rc,out,nothing = gromacs.make_ndx(f=sol, n=None, o=ndx, stdout=False,       #@UndefinedVariable
-                                      input=('', '', 'q')) 
-    
-    gromacs.grompp(f="md2.mdp", o="{}.tpr".format(fbase), c=sol, p=top, n=ndx)  #@UndefinedVariable
-    
+
+    gromacs.genbox(
+        p=top, cp=struct, cs="spc216.gro", o=sol, vdwd="0.15"
+    )  # @UndefinedVariable
+
+    rc, out, nothing = gromacs.make_ndx(
+        f=sol, n=None, o=ndx, stdout=False, input=("", "", "q")  # @UndefinedVariable
+    )
+
+    gromacs.grompp(
+        f="md2.mdp", o="{}.tpr".format(fbase), c=sol, p=top, n=ndx
+    )  # @UndefinedVariable
+
     with file("{}.sh".format(fbase), "w") as f:
         f.write("#!/bin/bash\n")
         f.write("#PBS -k o\n")
@@ -220,54 +236,54 @@ def test2(a,radius,box=100.0,fbase=None):
         f.write("#PBS -d /N/dc/scratch/somogyie/Au\n")
 
         f.write("mpirun mdrun -deffnm {}".format(fbase))
-        
+
+
 def test3():
-    
-    for i in arange(10,31,2.5):
-        fbase = "{}_{}".format(100.,i)
+
+    for i in arange(10, 31, 2.5):
+        fbase = "{}_{}".format(100.0, i)
         top = "{}.top".format(fbase)
         sol = "{}.sol.pdb".format(fbase)
         ndx = "{}.ndx".format(fbase)
-        gromacs.grompp(f="md3.mdp", o="{}.tpr".format(fbase), c=sol, p=top, n=ndx) #@UndefinedVariable
-        
+        gromacs.grompp(
+            f="md3.mdp", o="{}.tpr".format(fbase), c=sol, p=top, n=ndx
+        )  # @UndefinedVariable
+
+
 def make_tpr(box, rrange):
-    
+
     for radius in rrange:
 
-        fbase = "{}_{}".format(box,radius)
-    
+        fbase = "{}_{}".format(box, radius)
+
         top = "{}.top".format(fbase)
         sol = "{}.sol.pdb".format(fbase)
         ndx = "{}.ndx".format(fbase)
-    
-        gromacs.grompp(f="md2.mdp", o="{}.tpr".format(fbase), c=sol, p=top, n=ndx) #@UndefinedVariable
-        
+
+        gromacs.grompp(
+            f="md2.mdp", o="{}.tpr".format(fbase), c=sol, p=top, n=ndx
+        )  # @UndefinedVariable
+
+
 def merge_hdf(gpat, out):
     import os.path
     import glob
+
     files = glob.glob(gpat)
     with h5py.File(out, "w") as out:
         for f, fname in [(h5py.File(f, "r"), os.path.splitext(f)[0]) for f in files]:
-            print(f["0/POSITIONS"].value[0,0,:,:])
-            print(f["0/VELOCITIES"].value[0,0,:,:])
-            print(f["0/FORCES"].value[0,0,:,:])
-            
-            g=out.create_group(fname)
-        
-            g["POSITIONS"]  = f["0/POSITIONS"].value[0,0,:,:]
-            g["VELOCITIES"] = f["0/VELOCITIES"].value[0,0,:,:]
-            g["FORCES"]     = f["0/FORCES"].value[0,0,:,:]
-        
-    
-        
-    
+            print(f["0/POSITIONS"].value[0, 0, :, :])
+            print(f["0/VELOCITIES"].value[0, 0, :, :])
+            print(f["0/FORCES"].value[0, 0, :, :])
+
+            g = out.create_group(fname)
+
+            g["POSITIONS"] = f["0/POSITIONS"].value[0, 0, :, :]
+            g["VELOCITIES"] = f["0/VELOCITIES"].value[0, 0, :, :]
+            g["FORCES"] = f["0/FORCES"].value[0, 0, :, :]
+
+
 if __name__ == "__main__":
     import sys
-    print(sys.argv)
-    
 
-        
-    
-        
-            
-            
+    print(sys.argv)

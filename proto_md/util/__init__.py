@@ -1,2 +1,2 @@
-from util import *
-from lattice import *
+from .util import *
+from .lattice import *
