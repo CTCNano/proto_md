@@ -1,6 +1,6 @@
 #!/bin/sh
 python -m proto_md config \
-	   -o output.hdf \
+	   -o input.hdf \
 	   -struct Struct/1PRT.gro \
 	   -temperature 310.0 \
 	   -subsystem_selects "protein" \
@@ -17,5 +17,5 @@ python -m proto_md config \
 	   -multi 1 \
 	   -integrator proto_md.integrators.FactorizationIntegrator \
 	   -subsystem_factory \
-	    proto_md.subsystems.ContinuumSubsystemFactory \
-	   -subsystem_args "{'NumNodes_x':3, 'NumNodes_y':3, 'NumNodes_z':3, 'Resolution':30.0, 'NewIters':10, 'Threshold':1000, 'Scaling':10.0**-4}"
+	    proto_md.subsystems.SpaceWarpingSubsystemFactory \
+	   -subsystem_args "{'kmax':1}"
