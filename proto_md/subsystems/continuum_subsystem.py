@@ -7,11 +7,11 @@ The continuum field variable approach.
 
 """
 
-import subsystems
+from . import subsystems
 import numpy as np
 import os
 import logging
-import FieldVars as FV
+from . import FieldVars as FV
 import MDAnalysis as md
 
 
@@ -89,7 +89,7 @@ class ContinuumSubsystem(subsystems.SubSystem):
             self.atoms.positions, self.CG + dCG[: self.NumNodes()]
         )
 
-        print "COM of protein is {}".format(self.atoms.centerOfMass())
+        print("COM of protein is {}".format(self.atoms.centerOfMass()))
 
     def frame(self):
         """
