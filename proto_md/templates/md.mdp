@@ -108,4 +108,4 @@ constraint-algorithm     = Lincs
 lincs-order              = 4
 lincs-iter               = 1
 
-cutoff-scheme		 = group
+cutoff-scheme		 = verlet
