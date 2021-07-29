@@ -81,6 +81,7 @@ import MDAnalysis
 import numpy.random
 from numpy import array, zeros, reshape, conjugate, real, max, fromfile, uint8
 import logging
+import os
 
 logging.basicConfig(
     format="%(asctime)s:%(levelname)s:%(funcName)s:%(message)s",
@@ -99,18 +100,20 @@ class Timestep(object):
     the group and provides properties to access the values.
     """
 
-    ATOMIC_MINIMIZED_POSITIONS = "atomic_minimized_positions"
-    ATOMIC_EQUILIBRATED_POSITIONS = "atomic_equilibrated_positions"
-    ATOMIC_STARTING_POSITIONS = "atomic_starting_positions"
-    ATOMIC_FINAL_POSITIONS = "atomic_final_positions"
-    TIMESTEP_BEGIN = "timestep_begin"
-    TIMESTEP_END = "timestep_end"
-    CG_POSITIONS = "cg_positions"
-    CG_VELOCITIES = "cg_velocities"
-    CG_FORCES = "cg_forces"
-    CG_TRANSLATE = "cg_translate"
+    ATOMIC_MINIMIZED_POSITIONS = b"atomic_minimized_positions"
+    ATOMIC_EQUILIBRATED_POSITIONS = b"atomic_equilibrated_positions"
+    ATOMIC_STARTING_POSITIONS = b"atomic_starting_positions"
+    ATOMIC_FINAL_POSITIONS = b"atomic_final_positions"
+    TIMESTEP_BEGIN = b"timestep_begin"
+    TIMESTEP_END = b"timestep_end"
+    CG_POSITIONS = b"cg_positions"
+    CG_VELOCITIES = b"cg_velocities"
+    CG_FORCES = b"cg_forces"
+    CG_TRANSLATE = b"cg_translate"
 
     def __create_property(self, name):
+        name = name.decode() if isinstance(name, bytes) else name
+
         def getter(self):
             return self._group[name][()]
 
@@ -230,8 +233,11 @@ class System(object):
         factory = util.get_class(self.config[SUBSYSTEM_FACTORY])
 
         # This is imp to get around the HDF - dictionary incompatibility
-        subsystem_args_tuple = tuple([tuple(i) for i in self.config[SUBSYSTEM_ARGS]])
-        subsystem_args_dict = dict((x, eval(y)) for x, y in subsystem_args_tuple)
+        subsystem_args_dict = {}
+        subsystem_args = SUBSYSTEM_ARGS.decode()
+        for key in self.config.keys():
+            if subsystem_args in key:
+                subsystem_args_dict[key.strip(subsystem_args + "_")] = self.config[key]
 
         self.ncgs, self.subsystems = factory(
             self, self.config[SUBSYSTEM_SELECTS], **subsystem_args_dict
@@ -248,12 +254,13 @@ class System(object):
         md_nensemble = self.config[MULTI]
 
         # number of data points in trajectory, md steps / output interval
-        md_nsteps = int(self.config[MD_STEPS]) / int(self.md_args[NSTXOUT])
+        md_nsteps = int(self.config[MD_STEPS]) / int(self.md_args["nstxout"])
 
         # number of subsystems
         nrs = len(self.subsystems)
 
         # cg: nensembe x n segment x n_step x n_cg
+        md_nsteps = int(md_nsteps)
         self.cg_positions = zeros((md_nensemble, nrs, md_nsteps, self.ncgs))
         self.cg_forces = zeros((md_nensemble, nrs, md_nsteps, self.ncgs))
         self.cg_velocities = zeros((md_nensemble, nrs, md_nsteps, self.ncgs))
@@ -323,10 +330,10 @@ class System(object):
         """
         # TODO imporove error checking and handling.
         if self.hdf.id.links.exists(CURRENT_TIMESTEP):
-            file_key = CURRENT_TIMESTEP + "/" + file_key
+            file_key = os.path.join(CURRENT_TIMESTEP.decode(), file_key)
         else:
-            file_key = SRC_FILES + "/" + file_key
-        return self.hdf[file_key]
+            file_key = os.path.join(SRC_FILES.decode(), file_key)
+        return self.hdf[file_key.encode("ascii", "ignore")]
 
     @property
     def last_timestep(self):
@@ -392,7 +399,9 @@ class System(object):
         # link file data into current
         for f in FILE_DATA_LIST:
             util.hdf_linksrc(
-                self.hdf, CURRENT_TIMESTEP + "/" + f, src_files.name + "/" + f
+                self.hdf,
+                os.path.join(CURRENT_TIMESTEP.decode(), f),
+                os.path.join(src_files.name, f),
             )
 
     def end_timestep(self):
@@ -469,7 +478,15 @@ class System(object):
             logging.info(
                 "_universe_from_hdf, struct.gro not in current frame, loading from src_files"
             )
-            data = array(self.hdf[SRC_FILES + "/" + STRUCT_PDB])
+            src_files = (
+                SRC_FILES.decode() if isinstance(SRC_FILES, bytes) else SRC_FILES
+            )
+            struct_pdb = (
+                STRUCT_PDB.decode() if isinstance(STRUCT_PDB, bytes) else STRUCT_PDB
+            )
+            file_path = os.path.join(src_files, struct_pdb)
+
+            data = array(self.hdf[file_path])
 
             with tempfile.NamedTemporaryFile(suffix=".gro") as f:
                 # EXTREMLY IMPORTANT to flush the file,
