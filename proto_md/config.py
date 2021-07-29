@@ -5,7 +5,7 @@ Created on Oct 11, 2012
 
 Handles configuration of proto_md environment variables and templates.
 
-All proto relevant environment variables can be accessed as config.proto_???, 
+All proto relevant environment variables can be accessed as config.proto_???,
 for example, to check if debug is on, one would check config.PROTO_DEBUG
 
 Currently used proto_md enviornment variables and their default values are:
@@ -14,13 +14,13 @@ PROTO_DEBUG : False
 PROTO_TMPDIR : "."
 
 """
-from pkg_resources import resource_filename, resource_listdir  # @UnresolvedImport
+from pkg_resources import resource_filename, resource_listdir
 import os
 
 from numpy import array, fromfile, uint8, all
 import tempfile
-import MDAnalysis  # @UnresolvedImport
-import h5py  # @UnresolvedImport
+import MDAnalysis
+import h5py
 from . import md
 from . import util
 import collections
@@ -52,12 +52,12 @@ def resource_basename(resource):
 
 templates = _generate_template_dict("templates")
 """
-A dictionary of pre-made templates. 
- 
+A dictionary of pre-made templates.
+
 TODO, this should be cleaned up: if a user specifies a mdp template, then that template
-should be stored in the hdf file. The current approach violates the principle that the 
+should be stored in the hdf file. The current approach violates the principle that the
 entire config is in the hdf.
-    
+
 *proto* comes with a number of templates for run input files
 and queuing system scripts. They are provided as a convenience and
 examples but **WITHOUT ANY GUARANTEE FOR CORRECTNESS OR SUITABILITY FOR
@@ -280,13 +280,18 @@ def create_sim(
             if value is not None:
                 try:
                     if typ is dict:
-                        conf[keyname + KEYS] = value.keys()
-                        conf[keyname + VALUES] = value.values()
+                        conf[keyname + KEYS] = [
+                            n.encode("ascii", "ignore") for n in value.keys()
+                        ]
+                        conf[keyname + VALUES] = [
+                            n.encode("ascii", "ignore") if isinstance(n, str) else n
+                            for n in value.values()
+                        ]
                     else:
                         conf[keyname] = typ(value)
-                except Exception:
+                except Exception as e:
                     print(
-                        'error, could not convert "{}" with value of "{}" to an {} type'.format(
+                        'error, could not convert "{}" with value of "{}" to {} type'.format(
                             keyname, value, typ
                         )
                     )
