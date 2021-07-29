@@ -14,7 +14,7 @@ Created on January 27, 2013
 """
 
 
-import subsystems
+from . import subsystems
 import numpy as np
 from scipy.special import legendre
 from scipy.linalg import qr
@@ -38,7 +38,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         access it yet.
 
         @param pindices: a N*3 array of Legendre polynomial indices.
-        @param select: a select string used for Universe.selectAtoms which selects
+        @param select: a select string used for Universe.select_atoms which selects
         the atoms that make up this subsystem.
         """
         self.system = system
@@ -67,7 +67,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         """
         universe changed, so select our atom group
         """
-        self.atoms = universe.selectAtoms(self.select)
+        self.atoms = universe.select_atoms(self.select)
 
         # check to see if atoms is valid
         if len(self.atoms) <= 0:
@@ -216,14 +216,14 @@ def poly_indexes(kmax):
     return np.array(indices, "i")
 
 
-def SpaceWarpingSubsystemFactory(system, selects, **args):
+def SpaceWarpingSubsystemFactory(system, selects, **kwargs):
     """
     create a list of LegendreSubsystems.
     @param system: the system that the subsystem belongs to, this may be None
                    when the simulation file is created.
     @param selects: A list of MDAnalysis selection strings, one for each
                     subsystem.
-    @param args: a list of length 1 or 2. The first element is kmax, and
+    @param kwargs: a list of length 1 or 2. The first element is kmax, and
                  the second element may be the string "resid unique", which can be
                  thought of as an additional selection string. What it does is
                  generate a subsystem for each residue. So, for example, select
@@ -234,18 +234,18 @@ def SpaceWarpingSubsystemFactory(system, selects, **args):
     kmax, freq = 0, 1000
 
     try:
-        kmax = args["kmax"]
+        kmax = kwargs["kmax"]
     except:
-        raise ValueError("invalid subsystem args")
+        raise ValueError(f"Invalid subsystem keyword args: {kwargs}")
 
-    if "freq" in args:
-        freq = args["freq"]
+    if "freq" in kwargs:
+        freq = kwargs["freq"]
         logging.info(
             "Ref structure will be updated every {} CG time steps".format(freq)
         )
 
     # test to see if the generated selects work
-    [system.universe.selectAtoms(select) for select in selects]
+    [system.universe.select_atoms(select) for select in selects]
 
     # create the polynomial indices
     pindices = poly_indexes(kmax)
