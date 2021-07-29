@@ -6,9 +6,7 @@ Created on Dec 30, 2012
 
 
 """
-import system
-import config
-import util
+from . import util, system, config
 import sys
 import tempfile
 import os

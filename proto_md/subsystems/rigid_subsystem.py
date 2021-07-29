@@ -3,7 +3,7 @@ Created on Oct 3, 2012
 
 @author: andy
 """
-import subsystems
+from . import subsystems
 
 from numpy import sum, newaxis, pi, sin, cos, arctan2
 

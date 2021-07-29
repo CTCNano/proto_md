@@ -3,8 +3,8 @@ Created on Jan 30, 2013
 
 @author: andy
 """
-import integrator
-import proto_md.dynamics as dynamics
+from . import integrator
+from .. import dynamics
 
 
 class LangevinIntegrator(integrator.Integrator):
