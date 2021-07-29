@@ -80,20 +80,20 @@ Botlzmann's constant in kJ/mol/K
 KB = 0.0083144621
 
 
-CURRENT_TIMESTEP = "current_timestep"
-SRC_FILES = "src_files"
+CURRENT_TIMESTEP = b"current_timestep"
+SRC_FILES = b"src_files"
 FILE_DATA_LIST = ["struct.gro", "topol.top", "index.ndx", "posres.itp"]
-TOP_INCLUDES = "top_includes"
-TIMESTEPS = "timesteps"
-CONFIG = "config"
+TOP_INCLUDES = b"top_includes"
+TIMESTEPS = b"timesteps"
+CONFIG = b"config"
 STRUCT_PDB = "struct.gro"
 TOPOL_TOP = "topol.top"
 INDEX_NDX = "index.ndx"
-CG_STEPS = "cg_steps"
-MN_STEPS = "mn_steps"
-EQ_STEPS = "eq_steps"
-MD_STEPS = "md_steps"
-INCLUDE_MDP_DIRS = "include_mdp_dirs"
+CG_STEPS = b"cg_steps"
+MN_STEPS = b"mn_steps"
+EQ_STEPS = b"eq_steps"
+MD_STEPS = b"md_steps"
+INCLUDE_MDP_DIRS = b"include_mdp_dirs"
 
 # All values are stored in the hdf file, however there is no direct
 # way to store a python dict in hdf, so we need to store it as
@@ -102,46 +102,46 @@ INCLUDE_MDP_DIRS = "include_mdp_dirs"
 # 'key names' will have '_keys' and '_values' automatically appended
 # to them, then the corresponding keys / values will be stored as
 # such.
-MN_ARGS = "mn_args"
-EQ_ARGS = "eq_args"
-MD_ARGS = "md_args"
-TOP_ARGS = "top_args"
-KEYS = "_keys"
-VALUES = "_values"
-MULTI = "multi"
-SHOULD_SOLVATE = "should_solvate"
-POSRES_ITP = "posres.itp"
-SUBSYSTEM_FACTORY = "subsystem_factory"
-SUBSYSTEM_SELECTS = "subsystem_selects"
-SUBSYSTEM_ARGS = "subsystem_args"
-NSTXOUT = "nstxout"
-NSTVOUT = "nstvout"
-NSTFOUT = "nstfout"
-BOX = "box"
-CATION = "cation"
-ANION = "anion"
-CONCENTRATION = "concentration"
-TEMPERATURE = "temperature"
-DT = "dt"
-INTEGRATOR = "integrator"
-INTEGRATOR_ARGS = "integrator_args"
-MAINSELECTION = "mainselection"
-INCLUDE_MDP_DIRS = "include_mdp_dirs"
+MN_ARGS = b"mn_args"
+EQ_ARGS = b"eq_args"
+MD_ARGS = b"md_args"
+TOP_ARGS = b"top_args"
+KEYS = b"_keys"
+VALUES = b"_values"
+MULTI = b"multi"
+SHOULD_SOLVATE = b"should_solvate"
+POSRES_ITP = b"posres.itp"
+SUBSYSTEM_FACTORY = b"subsystem_factory"
+SUBSYSTEM_SELECTS = b"subsystem_selects"
+SUBSYSTEM_ARGS = b"subsystem_args"
+NSTXOUT = b"nstxout"
+NSTVOUT = b"nstvout"
+NSTFOUT = b"nstfout"
+BOX = b"box"
+CATION = b"cation"
+ANION = b"anion"
+CONCENTRATION = b"concentration"
+TEMPERATURE = b"temperature"
+DT = b"dt"
+INTEGRATOR = b"integrator"
+INTEGRATOR_ARGS = b"integrator_args"
+MAINSELECTION = b"mainselection"
+INCLUDE_MDP_DIRS = b"include_mdp_dirs"
 
-DEFAULT_MN_ARGS = {"mdp": "em.mdp"}
+DEFAULT_MN_ARGS = {b"mdp": b"em.mdp"}
 
 DEFAULT_MD_ARGS = {
-    "mdp": "md_CHARMM27.mdp",  # the default mdp template
-    "nstxout": 10,  # trr pos
-    "nstvout": 10,  # trr veloc
-    "nstfout": 10,  # trr forces
-    "dt": 0.001,  # trr time step (1fs = 0.001ps)
+    b"mdp": b"md_CHARMM27.mdp",  # the default mdp template
+    b"nstxout": 10,  # trr pos
+    b"nstvout": 10,  # trr veloc
+    b"nstfout": 10,  # trr forces
+    b"dt": 0.001,  # trr time step (1fs = 0.001ps)
 }
 
 DEFAULT_EQ_ARGS = {
-    "mdp": "md_CHARMM27.mdp",  # the default mdp template
-    "define": "-DPOSRES",  # do position restrained md for equilibriation
-    "dt": 0.001,  # trr time step (1fs = 0.001ps)
+    b"mdp": b"md_CHARMM27.mdp",  # the default mdp template
+    b"define": b"-DPOSRES",  # do position restrained md for equilibriation
+    b"dt": 0.001,  # trr time step (1fs = 0.001ps)
 }
 
 
@@ -230,7 +230,7 @@ def create_sim(
     anion="CL",
     cation="NA",
     debug=False,
-    **kwargs
+    **kwargs,
 ):
     """
     Create the simulation file
@@ -281,7 +281,8 @@ def create_sim(
                 try:
                     if typ is dict:
                         conf[keyname + KEYS] = [
-                            n.encode("ascii", "ignore") for n in value.keys()
+                            n.encode("ascii", "ignore") if isinstance(n, str) else n
+                            for n in value.keys()
                         ]
                         conf[keyname + VALUES] = [
                             n.encode("ascii", "ignore") if isinstance(n, str) else n
@@ -348,9 +349,9 @@ def create_sim(
         attr(MN_STEPS, int, mn_steps)
         attr(MD_STEPS, int, md_steps)
         attr(MULTI, int, multi)
-        attr(NSTXOUT, int, kwargs["md_args"]["nstxout"])
-        attr(NSTVOUT, int, kwargs["md_args"]["nstvout"])
-        attr(NSTFOUT, int, kwargs["md_args"]["nstfout"])
+        attr(NSTXOUT, int, kwargs["md_args"][NSTXOUT])
+        attr(NSTVOUT, int, kwargs["md_args"][NSTVOUT])
+        attr(NSTFOUT, int, kwargs["md_args"][NSTFOUT])
 
         attr(EQ_STEPS, int, eq_steps)
         attr(INCLUDE_MDP_DIRS, str, include_mdp_dirs)
@@ -404,7 +405,7 @@ def create_sim(
                         concentration=concentration,
                         anion=anion,
                         cation=cation,
-                        **top
+                        **top,
                     ):
                         # solvate returns
                         # {'ndx': '/home/andy/tmp/Au/solvate/main.ndx',
@@ -475,8 +476,11 @@ def create_sim(
 
             conf[SUBSYSTEM_FACTORY] = subsystem_factory
             conf[SUBSYSTEM_SELECTS] = subsystem_selects
-            conf[SUBSYSTEM_ARGS] = subsystem_args.items()
 
+            for key, val in subsystem_args.items():
+                conf[f"subsystem_args_{key}".encode("ascii")] = (
+                    val.encode("ascii", "ignore") if isinstance(val, str) else val
+                )
         except Exception as e:
             print("error creating subsystem_class, {}".format(e))
             raise e
