@@ -85,8 +85,8 @@ def data_tofile(data, fid=None, sep="", fmt="%s", dirname="."):
                     print("writing file {} in dir {}".format(fid, dirname))
                     data.tofile(fid, sep, fmt)
                 elif isinstance(
-                    data, MDAnalysis.core.AtomGroup.AtomGroup
-                ) or isinstance(data, MDAnalysis.core.AtomGroup.Universe):
+                    data, MDAnalysis.core.groups.AtomGroup
+                ) or isinstance(data, MDAnalysis.Universe):
                     w = MDAnalysis.Writer(fid, numatoms=len(data.atoms))
                     w.write(data)
                     del w
@@ -112,7 +112,9 @@ def hdf_linksrc(hdf, newname, src):
         pass
 
     print("links.create_soft({}, {})".format(newname, src))
-    hdf.id.links.create_soft(newname, src)
+    hdf.id.links.create_soft(
+        newname.encode("ascii", "ignore"), src.encode("ascii", "ignore")
+    )
 
 
 def hdf_value_from_string(s):
