@@ -27,7 +27,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
     A set of CG variables.
     """
 
-    def __init__(self, system, pindices, select, freq):
+    def __init__(self, **kwargs):
         """
         Create a SWM subsystem.
         @param system: an object (typically the system this subsystem belongs to)
@@ -41,25 +41,31 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         @param select: a select string used for Universe.select_atoms which selects
         the atoms that make up this subsystem.
         """
-        self.system = system
+        self.system = kwargs.get("system")
 
         # select statement to get atom group
-        self.select = select
+        self.select = kwargs.get("select")
 
         # polynomial indices, N_cg x 3 matrix.
-        self.pindices = pindices
+        self.pindices = kwargs.get("pindices")
 
         # we need to be called with a valid universe
-        self.universe_changed(system.universe)
+        if self.system is not None:
+            self.universe_changed(self.system.universe)
 
         self.cgStep = 0
 
         # How often should the reference struct be updated
-        self.Freq_Update = freq
+        self.freq_update = kwargs.get("freq", 1000)
+
+        if self.pindices is None:
+            raise ValueError(
+                f"{self.__name__} requires pindices (polymer indices) to be supplied."
+            )
 
         logging.info(
             "created SpaceWarpingSubsystem, pindices: {}, select: {}".format(
-                pindices, select
+                self.pindices, self.select
             )
         )
 
@@ -115,14 +121,14 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         this is called just after the structure is equilibriated, this is the starting struct
         for the MD runs, this is to calculate basis.
         """
-        if self.cgStep % self.Freq_Update == 0:
+        if self.cgStep % self.freq_update == 0:
             logging.info(
                 "Updating ref structure and constructing new basis functions..."
             )
             boxboundary = self.atoms.bbox()
             # 110% of the macromolecular box
             self.box = (boxboundary[1, :] - boxboundary[0, :]) * 1.1
-            self.ref_com = self.atoms.centerOfMass()
+            self.ref_com = self.atoms.center_of_mass()
 
             self.basis = self.Construct_Basis(self.atoms.positions - self.ref_com)
             self.ref_coords = self.atoms.positions.copy()
@@ -185,7 +191,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         # grab the masses, and make it a column vector
         basis = np.zeros([scaledPos.shape[0], self.pindices.shape[0]], "f")
 
-        for i in xrange(self.pindices.shape[0]):
+        for i in range(self.pindices.shape[0]):
             k1, k2, k3 = self.pindices[i, :]
             px = legendre(k1)(scaledPos[:, 0])
             py = legendre(k2)(scaledPos[:, 1])
@@ -216,7 +222,7 @@ def poly_indexes(kmax):
     return np.array(indices, "i")
 
 
-def SpaceWarpingSubsystemFactory(system, selects, **kwargs):
+def SpaceWarpingSubsystemFactory(system=None, selects=["all"], **kwargs):
     """
     create a list of LegendreSubsystems.
     @param system: the system that the subsystem belongs to, this may be None
@@ -231,21 +237,17 @@ def SpaceWarpingSubsystemFactory(system, selects, **kwargs):
                  if args is [kmax, "resid unique"], an seperate subsystem is
                  created for each residue.
     """
-    kmax, freq = 0, 1000
+    kmax = kwargs.get("kmax", 0)
+    freq = kwargs.get("freq", 1000)
 
-    try:
-        kmax = kwargs["kmax"]
-    except:
-        raise ValueError(f"Invalid subsystem keyword args: {kwargs}")
-
-    if "freq" in kwargs:
-        freq = kwargs["freq"]
+    if freq:
         logging.info(
             "Ref structure will be updated every {} CG time steps".format(freq)
         )
 
     # test to see if the generated selects work
-    [system.universe.select_atoms(select) for select in selects]
+    if system:
+        [system.universe.select_atoms(select) for select in selects]
 
     # create the polynomial indices
     pindices = poly_indexes(kmax)
@@ -257,5 +259,10 @@ def SpaceWarpingSubsystemFactory(system, selects, **kwargs):
 
     return (
         ncg,
-        [SpaceWarpingSubsystem(system, pindices, select, freq) for select in selects],
+        [
+            SpaceWarpingSubsystem(
+                system=system, pindices=pindices, select=select, freq=freq
+            )
+            for select in selects
+        ],
     )
