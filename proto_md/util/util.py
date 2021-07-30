@@ -84,9 +84,9 @@ def data_tofile(data, fid=None, sep="", fmt="%s", dirname="."):
                 if type(data) is n.ndarray:
                     print("writing file {} in dir {}".format(fid, dirname))
                     data.tofile(fid, sep, fmt)
-                elif isinstance(
-                    data, MDAnalysis.core.groups.AtomGroup
-                ) or isinstance(data, MDAnalysis.Universe):
+                elif isinstance(data, MDAnalysis.core.groups.AtomGroup) or isinstance(
+                    data, MDAnalysis.Universe
+                ):
                     w = MDAnalysis.Writer(fid, numatoms=len(data.atoms))
                     w.write(data)
                     del w
@@ -117,29 +117,12 @@ def hdf_linksrc(hdf, newname, src):
     )
 
 
-def hdf_value_from_string(s):
-    """
-    As we currently store dictionaries in the hdf file, everything gets
-    converted to a string UGLY!!!. This function tries to recast them
-    as the original data type, currenly we support ints and floats.
-    """
-    try:
-        return int(s)
-    except ValueError:
-        pass
-    try:
-        return float(s)
-    except ValueError:
-        pass
-    return str(s)
-
-
 def hdf_dict(attrs, key_base_name):
     return dict(
         zip(
             attrs[key_base_name + proto_md.config.KEYS],
             [
-                hdf_value_from_string(s)
+                s.decode() if isinstance(s, bytes) else s
                 for s in attrs[key_base_name + proto_md.config.VALUES]
             ],
         )
