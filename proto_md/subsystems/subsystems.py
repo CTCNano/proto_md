@@ -22,14 +22,14 @@ class SubSystem(object):
         So, __init__ will obviously be called when a new SubSystem derived object is created, then
         after the universe is created, it will call universe_changed.
         """
-        pass
+        raise NotImplementedError
 
     def frame(self):
         """
         notifices the subsystem that a new frame is ready.
         @return a tuple of (position,velocity,force) CG variables for the current frame.
         """
-        pass
+        raise NotImplementedError
 
     def translate(self, values):
         """
@@ -39,10 +39,10 @@ class SubSystem(object):
         be given a 1x3 vector which represents how much to shift the center of mass,
         then the subsystem would simply ADD this value to ALL atomic positions.
         """
-        pass
+        raise NotImplementedError
 
     def minimized(self):
-        pass
+        raise NotImplementedError
 
-    def equilibriated(self):
-        pass
+    def equilibrated(self):
+        raise NotImplementedError
