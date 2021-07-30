@@ -70,7 +70,7 @@ class Integrator:
         self.system.minimize()
 
         self.system.universe.trajectory.ts.has_velocities = True
-        self.system.universe.atoms.set_velocities(velo)
+        self.system.universe.atoms.velocities = velo
 
         if self.system.should_solvate:
             with self.system.solvate() as sol:
