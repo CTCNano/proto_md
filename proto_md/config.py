@@ -128,20 +128,20 @@ INTEGRATOR_ARGS = b"integrator_args"
 MAINSELECTION = b"mainselection"
 INCLUDE_MDP_DIRS = b"include_mdp_dirs"
 
-DEFAULT_MN_ARGS = {b"mdp": b"em.mdp"}
+DEFAULT_MN_ARGS = {"mdp": "em.mdp"}
 
 DEFAULT_MD_ARGS = {
-    b"mdp": b"md_CHARMM27.mdp",  # the default mdp template
-    b"nstxout": 10,  # trr pos
-    b"nstvout": 10,  # trr veloc
-    b"nstfout": 10,  # trr forces
-    b"dt": 0.001,  # trr time step (1fs = 0.001ps)
+    "mdp": "md_CHARMM27.mdp",  # the default mdp template
+    "nstxout": 10,  # trr pos
+    "nstvout": 10,  # trr veloc
+    "nstfout": 10,  # trr forces
+    "dt": 0.001,  # trr time step (1fs = 0.001ps)
 }
 
 DEFAULT_EQ_ARGS = {
-    b"mdp": b"md_CHARMM27.mdp",  # the default mdp template
-    b"define": b"-DPOSRES",  # do position restrained md for equilibriation
-    b"dt": 0.001,  # trr time step (1fs = 0.001ps)
+    "mdp": "md_CHARMM27.mdp",  # the default mdp template
+    "define": "-DPOSRES",  # do position restrained md for equilibriation
+    "dt": 0.001,  # trr time step (1fs = 0.001ps)
 }
 
 
@@ -349,9 +349,9 @@ def create_sim(
         attr(MN_STEPS, int, mn_steps)
         attr(MD_STEPS, int, md_steps)
         attr(MULTI, int, multi)
-        attr(NSTXOUT, int, kwargs["md_args"][NSTXOUT])
-        attr(NSTVOUT, int, kwargs["md_args"][NSTVOUT])
-        attr(NSTFOUT, int, kwargs["md_args"][NSTFOUT])
+        attr(NSTXOUT, int, kwargs["md_args"]["nstxout"])
+        attr(NSTVOUT, int, kwargs["md_args"]["nstvout"])
+        attr(NSTFOUT, int, kwargs["md_args"]["nstfout"])
 
         attr(EQ_STEPS, int, eq_steps)
         attr(INCLUDE_MDP_DIRS, str, include_mdp_dirs)
@@ -466,7 +466,9 @@ def create_sim(
                     subsystem_factory
                 )
             )
-            test_ncgs, test_ss = factory(dummysys, subsystem_selects, **subsystem_args)
+            test_ncgs, test_ss = factory(
+                system=dummysys, selects=subsystem_selects, **subsystem_args
+            )
 
             print(
                 "subsystem factory appears to work, produces {} cg variables for each {} subsystems.".format(
