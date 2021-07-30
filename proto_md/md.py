@@ -39,7 +39,7 @@ class MDManager(dict):
     def __init__(self, *args, **kwargs):
         super(MDManager, self).__init__(*args, **kwargs)
 
-        if not self.has_key("dirname"):
+        if "dirname" not in self:
             raise ValueError('MDManager arguments must contain a "dirname" key')
 
         self.dirname = self["dirname"]
@@ -111,7 +111,6 @@ class MDrunner(gromacs.run.MDrunner):
     .. _mpich2: http://www.mcs.anl.gov/research/projects/mpich2/
     """
 
-    mdrun = "mdrun"
     mpiexec = "mpiexec"
 
     def mpicommand(self, *args, **kwargs):
@@ -228,6 +227,7 @@ def minimize(
     #   'top': topology,
     #   'mainselection': mainselection,
     # }
+
     result = gromacs.setup.energy_minimize(
         dirname=dirname,
         struct=struct,
@@ -796,19 +796,19 @@ def run_md(dirname, md_runner=MDrunner, **kwargs):
 
     # figure out what the output file is, try set default output format to pdb
     structs = None
-    if kwargs.has_key("deffnm"):
-        if kwargs.has_key("c"):
+    if "deffnm" in kwargs:
+        if "c" in kwargs:
             structs = kwargs["c"]
         else:
             structs = kwargs["deffnm"] + ".gro"
             kwargs["c"] = structs
-    elif kwargs.has_key["c"]:
+    elif "c" in kwargs:
         structs = kwargs["c"]
     else:
         # default name according to mdrun man
         structs = "confout.gro"
 
-    if kwargs.has_key("multi"):
+    if "multi" in kwargs:
         split = os.path.splitext(structs)
         structs = [split[0] + str(i) + split[1] for i in range(kwargs["multi"])]
     else:
@@ -922,19 +922,19 @@ def run_md_debug(dirname, md_runner=MDrunner, **kwargs):
 
     # figure out what the output file is, try set default output format to pdb
     structs = None
-    if kwargs.has_key("deffnm"):
-        if kwargs.has_key("c"):
+    if "deffnm" in kwargs:
+        if "c" in kwargs:
             structs = kwargs["c"]
         else:
             structs = kwargs["deffnm"] + ".gro"
             kwargs["c"] = structs
-    elif kwargs.has_key("c"):
+    elif "c" in kwargs:
         structs = kwargs["c"]
     else:
         # default name according to mdrun man
         structs = "confout.gro"
 
-    if kwargs.has_key("multi"):
+    if "multi" in kwargs:
         split = os.path.splitext(structs)
         structs = [split[0] + str(i) + split[1] for i in range(kwargs["multi"])]
     else:
