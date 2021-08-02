@@ -152,7 +152,7 @@ def minimize(
     deffnm="em",
     mdrunner=MDrunner,
     mdp="em.mdp",
-    **kwargs
+    **kwargs,
 ):
     """
     Energy minimize a system.
@@ -236,7 +236,7 @@ def minimize(
         deffnm=deffnm,
         mdp=mdp,
         mdrunner=mdrunner,
-        **kwargs
+        **kwargs,
     )
     result["dirname"] = dirname
     return MDManager(result)
@@ -250,7 +250,7 @@ def setup_md(
     dirname=None,
     mdp="md_CHARMM27.mdp",
     mainselection=None,
-    **kwargs
+    **kwargs,
 ):
     """Set up Gromacs MD run..
 
@@ -354,14 +354,16 @@ def setup_md(
 
     logging.debug("calling _setup_MD with kwargs: {}".format(kwargs))
 
-    setup_MD = gromacs.setup._setup_MD(
+    kwargs.setdefault("r", struct)
+
+    setup_MD = gromacs.setup.MD(
         dirname,
         struct=struct,
         top=top,
         deffnm=deffnm,
         mdp=mdp,
         mainselection=mainselection,
-        **kwargs
+        **kwargs,
     )
 
     setup_MD["dirname"] = dirname
@@ -379,7 +381,7 @@ def setup_md_debug(
     dirname=None,
     mdp="md_CHARMM27.mdp",
     mainselection=None,
-    **kwargs
+    **kwargs,
 ):
     """Set up Gromacs MD run..
 
@@ -477,14 +479,14 @@ def setup_md_debug(
 
     logging.debug("calling _setup_MD with kwargs: {}".format(kwargs))
 
-    setup_MD = gromacs.setup._setup_MD(
+    setup_MD = gromacs.setup.MD_restrained(
         dirname,
         struct=struct,
         top=top,
         deffnm=deffnm,
         mdp=mdp,
         mainselection=mainselection,
-        **kwargs
+        **kwargs,
     )
 
     setup_MD["dirname"] = dirname
@@ -501,7 +503,7 @@ def topology(
     ff="charmm27",
     water="spc",
     ignh=True,
-    **top_args
+    **top_args,
 ):
     """
     Generate a topology for a given structure.
@@ -537,7 +539,7 @@ def solvate(
     mainselection='"Protein"',
     dirname=None,
     deffnm="sol",
-    **kwargs
+    **kwargs,
 ):
     """Put protein into box, add water, add counter-ions.
 
