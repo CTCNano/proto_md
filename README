@@ -2,6 +2,11 @@ proto_md
 ========
 Prototyping toolkit for multiscale MD
 
+[//]: # (Badges)
+[![CI](https://github.com/CTCNano/proto_md/actions/workflows/CI.yaml/badge.svg)](https://github.com//CTCNano/proto_md/actions/workflows/CI.yaml)
+[![codecov](https://codecov.io/gh//CTCNano/proto_md/branch/master/graph/badge.svg)](https://codecov.io/gh//CTCNano/proto_md/branch/master)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g//CTCNano/proto_md.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g//CTCNano/proto_md/context:python)
+
 Authors
 =======
 Endre Somogyi,
