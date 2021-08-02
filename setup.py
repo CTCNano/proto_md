@@ -55,5 +55,11 @@ setup(
         "GromacsWrapper",
         "h5py",
     ],  # basic package (w/o analysis)
+    extras_require={
+        "tests": [
+            "pytest >= 4.0.0",
+            "pytest-cov",
+        ],
+    },
     zip_safe=False,
 )
