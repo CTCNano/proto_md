@@ -73,7 +73,7 @@ def diff_coef_from_corr(vi, vj, dt, int_points=4):
 
 
 def stokes(T, r):
-    """
+    r"""
     Estimates the diffusion cooeficient in units of Angstrom^2 / picosecond
     for a given temperature @param T in Kelvin, and a radius @param r in Angstroms.
 
