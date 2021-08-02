@@ -53,6 +53,7 @@ setup(
         "scipy",  # numkit needs it
         "MDAnalysis",
         "GromacsWrapper",
+        "h5py",
     ],  # basic package (w/o analysis)
     zip_safe=False,
 )
