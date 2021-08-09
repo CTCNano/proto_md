@@ -1,12 +1,15 @@
 #!/bin/sh
+
+FILE="input.hdf5"
+
 python -m proto_md config \
-	   -o input.hdf \
+	   -o $FILE \
 	   -struct Struct/1PRT.gro \
 	   -temperature 310.0 \
 	   -subsystem_selects "protein" \
 	   -cg_steps 5 \
 	   -dt 1.0 \
-	   -mn_steps 200 \
+	   -mn_steps 500 \
 	   -eq_steps 500 \
 	   -md_steps 500 \
 	   -top Top/1PRT.top \
@@ -19,3 +22,5 @@ python -m proto_md config \
 	   -subsystem_factory \
 	    proto_md.subsystems.SpaceWarpingSubsystemFactory \
 	   -subsystem_args "{'kmax':1}"
+
+python -m proto_md run $FILE
