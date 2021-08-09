@@ -117,12 +117,22 @@ def hdf_linksrc(hdf, newname, src):
     )
 
 
+def decode_hdf_dict(value):
+    try:
+        if float(value).is_integer():
+            return int(value)
+        else:
+            return float(value)
+    except Exception:
+        return value
+
+
 def hdf_dict(attrs, key_base_name):
     return dict(
         zip(
             attrs[key_base_name + proto_md.config.KEYS],
             [
-                s.decode() if isinstance(s, bytes) else s
+                decode_hdf_dict(s.decode()) if isinstance(s, bytes) else s
                 for s in attrs[key_base_name + proto_md.config.VALUES]
             ],
         )
