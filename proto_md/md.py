@@ -340,10 +340,6 @@ def setup_md(
         logging.debug("copying file {} to {}".format(i, dirname))
         data_tofile(i, dirname=dirname)
 
-    # required from gromacswrapper, if this is not set, it will fail as it expects
-    # a queing systme.
-    kwargs.setdefault("qname", None)
-
     # this stop grompp from failing if there are warning.
     # TODO, is this the best place to put this, should this be in in
     # config.py ????
@@ -352,7 +348,7 @@ def setup_md(
     logging.info("using mdp template {} from key {}".format(config.templates[mdp], mdp))
     mdp = config.templates[mdp]
 
-    logging.debug("calling _setup_MD with kwargs: {}".format(kwargs))
+    logging.debug("calling setup.MD with kwargs: {}".format(kwargs))
 
     kwargs.setdefault("r", struct)
 
@@ -368,7 +364,7 @@ def setup_md(
 
     setup_MD["dirname"] = dirname
 
-    logging.debug("finished _setup_MD, recieved: {}".format(setup_MD))
+    logging.debug("finished setup.MD, recieved: {}".format(setup_MD))
 
     return MDManager(setup_MD)
 
@@ -465,10 +461,6 @@ def setup_md_debug(
         logging.debug("copying file {} to {}".format(i, dirname))
         data_tofile(i, dirname=dirname)
 
-    # required from gromacswrapper, if this is not set, it will fail as it expects
-    # a queing systme.
-    kwargs.setdefault("qname", None)
-
     # this stop grompp from failing if there are warning.
     # TODO, is this the best place to put this, should this be in in
     # config.py ????
@@ -477,7 +469,7 @@ def setup_md_debug(
     logging.info("using mdp template {} from key {}".format(config.templates[mdp], mdp))
     mdp = config.templates[mdp]
 
-    logging.debug("calling _setup_MD with kwargs: {}".format(kwargs))
+    logging.debug("calling setup.MD with kwargs: {}".format(kwargs))
 
     setup_MD = gromacs.setup.MD_restrained(
         dirname,
@@ -491,7 +483,7 @@ def setup_md_debug(
 
     setup_MD["dirname"] = dirname
 
-    logging.debug("finished _setup_MD, recieved: {}".format(setup_MD))
+    logging.debug("finished setup.MD, recieved: {}".format(setup_MD))
 
     return MDManager(setup_MD)
 
