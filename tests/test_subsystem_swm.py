@@ -9,6 +9,7 @@ def test_subsystem_method1():
     [sub.universe_changed(universe) for sub in SS]
     [sub.equilibrated() for sub in SS]
     CG = [sub.ComputeCG(universe.atoms.positions) for sub in SS]
+    atomic_pos = [sub.ComputeCGInv(CG[index]) for index, sub in enumerate(SS)]
 
 
 def test_subsystem_method2():
@@ -18,3 +19,4 @@ def test_subsystem_method2():
     nCG, SS = ss.SpaceWarpingSubsystemFactory(system=dummysys, kmax=1)
     [sub.equilibrated() for sub in SS]
     CG = [sub.ComputeCG(universe.atoms.positions) for sub in SS]
+    atomic_pos = [sub.ComputeCGInv(CG[index]) for index, sub in enumerate(SS)]
