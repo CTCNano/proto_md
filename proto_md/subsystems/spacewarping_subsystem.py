@@ -116,10 +116,11 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
     def md(self):
         self.cgStep += 1
 
-    def equilibrated(self):
+    def equilibrated(self, scale=1.1):
         """
-        this is called just after the structure is equilibriated, this is the starting struct
+        This is called just after the structure is equilibriated, this is the starting struct
         for the MD runs, this is to calculate basis.
+        @param scale: factor to scale the macromolecular box with.
         """
         if self.cgStep % self.freq_update == 0:
             logging.info(
@@ -127,34 +128,28 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
             )
             boxboundary = self.atoms.bbox()
             # 110% of the macromolecular box
-            self.box = (boxboundary[1, :] - boxboundary[0, :]) * 1.1
+            self.box = (boxboundary[1, :] - boxboundary[0, :]) * scale
             self.ref_com = self.atoms.center_of_mass()
 
             self.basis = self.Construct_Basis(self.atoms.positions - self.ref_com)
             self.ref_coords = self.atoms.positions.copy()
 
-    def ComputeCGInv(self, CG):
+    def ComputeCGInv(self, cg):
         """
         Computes atomic positions from CG positions
         Using the simplest scheme for now
         @param CG: 3*n_cg x 1 array
         @return: a n_atom x 3array
         """
-        nCG = cg.shape[0] / 3
-
-        x = np.dot(self.basis, cg[:nCG])
-        y = np.dot(self.basis, cg[nCG : 2 * nCG])
-        z = np.dot(self.basis, cg[2 * nCG : 3 * nCG])
-
-        return self.ref_com + np.array([x, y, z]).T
+        return self.ref_com + np.dot(self.basis, cg)
 
     def ComputeCG(self, pos):
         """
         Computes CG positions
-        CG = inverse(Utw * self.basis) * Utw * pos
+        CG = inverse(Utw * self.basis) * Utw * (pos - pos_c)
         """
         Utw = self.basis.T * self.atoms.masses
-        cg = solve(np.dot(Utw, self.basis), np.dot(Utw, pos))
+        cg = solve(np.dot(Utw, self.basis), np.dot(Utw, pos - self.ref_com))
 
         return cg
 
@@ -186,7 +181,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         logging.info("Constructing basis ...")
 
         # normalize coords to [-1,1]
-        scaledPos = (coords - coords.mean(axis=0)) / self.box
+        scaledPos = (coords - self.ref_com) / self.box
 
         # grab the masses, and make it a column vector
         basis = np.zeros([scaledPos.shape[0], self.pindices.shape[0]], "f")
