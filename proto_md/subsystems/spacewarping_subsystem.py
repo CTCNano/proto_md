@@ -90,9 +90,15 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         """
         Returns a 3 tuple of CG variables, each one is a row vector of size n_cg
         """
-        cg = self.computeCG(self.atoms.positions)
-        cgVel = self.computeCGVel(self.atoms.velocities())
-        cgFor = self.computeCGForces(self.atoms.forces)
+        cg = self.computeCG_pos(self.atoms.positions)
+        try:
+            cgVel = self.computeCG_vel(self.atoms.velocities)
+        except Exception:
+            cgVel = cg * 0
+        try:
+            cgFor = self.computeCG_forces(self.atoms.forces)
+        except Exception:
+            cgFor = cg * 0
 
         cg = np.reshape(cg.T, (cg.shape[0] * cg.shape[1]))
         cgVel = np.reshape(cgVel.T, (cgVel.shape[0] * cgVel.shape[1]))
@@ -106,9 +112,13 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         where dCG is a finite change in the CG velocities times dt,
         and then adds the residuals for better accuracy.
 
-        @param CG: a length N_cg 1D array.
+        @param CG: a length 3*N_cg 1D array.
         """
-        self.atoms.positions += self.computeCGInv(dCG)
+        ndim = 3
+        nCG = len(dCG) / ndim
+        assert nCG.is_integer(), f"dCG must be of length (nCG*ndim). Supplied nCG = {len(dCG)}!"
+        nCG = int(nCG)
+        self.atoms.positions += self.computeCG_inv(dCG.reshape(nCG,ndim))
 
     def minimized(self):
         pass
@@ -116,10 +126,11 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
     def md(self):
         self.cgStep += 1
 
-    def equilibrated(self):
+    def equilibrated(self, scale=1.1):
         """
-        this is called just after the structure is equilibriated, this is the starting struct
+        This is called just after the structure is equilibriated, this is the starting struct
         for the MD runs, this is to calculate basis.
+        @param scale: factor to scale the macromolecular box with.
         """
         if self.cgStep % self.freq_update == 0:
             logging.info(
@@ -127,38 +138,32 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
             )
             boxboundary = self.atoms.bbox()
             # 110% of the macromolecular box
-            self.box = (boxboundary[1, :] - boxboundary[0, :]) * 1.1
+            self.box = (boxboundary[1, :] - boxboundary[0, :]) * scale
             self.ref_com = self.atoms.center_of_mass()
 
-            self.basis = self.Construct_Basis(self.atoms.positions - self.ref_com)
+            self.basis = self.construct_basis(self.atoms.positions - self.ref_com)
             self.ref_coords = self.atoms.positions.copy()
 
-    def ComputeCGInv(self, CG):
+    def computeCG_inv(self, cg):
         """
         Computes atomic positions from CG positions
         Using the simplest scheme for now
-        @param CG: 3*n_cg x 1 array
-        @return: a n_atom x 3array
+        @param CG: n_cg x 3 array
+        @return: n_atom x 3 array
         """
-        nCG = cg.shape[0] / 3
+        return self.ref_com + np.dot(self.basis, cg)
 
-        x = np.dot(self.basis, cg[:nCG])
-        y = np.dot(self.basis, cg[nCG : 2 * nCG])
-        z = np.dot(self.basis, cg[2 * nCG : 3 * nCG])
-
-        return self.ref_com + np.array([x, y, z]).T
-
-    def ComputeCG(self, pos):
+    def computeCG_pos(self, pos):
         """
         Computes CG positions
-        CG = inverse(Utw * self.basis) * Utw * pos
+        CG = inverse(Utw * self.basis) * Utw * (pos - pos_c)
         """
         Utw = self.basis.T * self.atoms.masses
-        cg = solve(np.dot(Utw, self.basis), np.dot(Utw, pos))
+        cg = solve(np.dot(Utw, self.basis), np.dot(Utw, pos - self.ref_com))
 
         return cg
 
-    def ComputeCG_Vel(self, vel):
+    def computeCG_vel(self, vel):
         """
         Computes CG velocities
         CG = inverse(Utw * self.basis) * Utw * vel
@@ -168,7 +173,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
 
         return cg_vel
 
-    def ComputeCG_Forces(self, forces):
+    def computeCG_forces(self, forces):
         """
         Computes CG forces
         CG = inverse(Utw * self.basis) * Utw * forces
@@ -178,7 +183,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
 
         return cg_forces
 
-    def Construct_Basis(self, coords):
+    def construct_basis(self, coords):
         """
         Constructs a matrix of orthonormalized legendre basis functions
         of size Natoms x NCG.
@@ -186,7 +191,7 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         logging.info("Constructing basis ...")
 
         # normalize coords to [-1,1]
-        scaledPos = (coords - coords.mean(axis=0)) / self.box
+        scaledPos = (coords - self.ref_com) / self.box
 
         # grab the masses, and make it a column vector
         basis = np.zeros([scaledPos.shape[0], self.pindices.shape[0]], "f")
