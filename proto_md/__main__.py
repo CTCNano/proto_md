@@ -466,7 +466,6 @@ def make_parser():
             s.minimize()
             s.equilibriate()
             s.md()
-        s.en
         s.end_timestep()
 
     ap.set_defaults(__func__=mneqmd)
