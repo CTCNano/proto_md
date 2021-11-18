@@ -613,7 +613,7 @@ def solvate(
 
     # The box, a list of three box lengths [A,B,C] that are used by :class:`~gromacs.tools.Editconf`
     # in combination with *boxtype* (``bt`` in :program:`editconf`) and *angles*.
-    if box is None and isinstance(struct, MDAnalysis.core.AtomGroup.Universe):
+    if box is None and isinstance(struct, MDAnalysis.Universe):
         # convert to nm
         box = struct.trajectory.ts.dimensions[:3] / 10.0
     else:
@@ -631,7 +631,7 @@ def solvate(
     # the n + nsol atom trr trajectory files.
     sub = None
 
-    if isinstance(struct, MDAnalysis.core.AtomGroup.Universe):
+    if isinstance(struct, MDAnalysis.Universe):
         sub = numpy.arange(len(struct.atoms))
 
     struct = data_tofile(struct, "src.gro", dirname=dirname)
