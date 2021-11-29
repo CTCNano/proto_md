@@ -574,7 +574,7 @@ class System(object):
             top=top,
             top_includes=self.top_includes,
             nsteps=self.config[MD_STEPS],
-            multi=self.config[MULTI],
+            #multi=self.config[MULTI],
             deffnm="md",
             mainselection=self.mainselection,
             **md_args
