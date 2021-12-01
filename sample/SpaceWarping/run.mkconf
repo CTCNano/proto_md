@@ -4,15 +4,15 @@ FILE="input.hdf5"
 
 python -m proto_md config \
 	   -o $FILE \
-	   -struct Struct/1PRT.gro \
+	   -struct Struct/dialanine.gro \
 	   -temperature 310.0 \
 	   -subsystem_selects "protein" \
 	   -cg_steps 5 \
 	   -dt 1.0 \
-	   -mn_steps 500 \
+	   -mn_steps 1000 \
 	   -eq_steps 500 \
 	   -md_steps 500 \
-	   -top Top/1PRT.top \
+	   -top Top/dialanine.top \
 	   -cation "NA" \
 	   -anion "CL" \
 	   -concentration 0.2 \
@@ -23,4 +23,4 @@ python -m proto_md config \
 	    proto_md.subsystems.SpaceWarpingSubsystemFactory \
 	   -subsystem_args "{'kmax':1}"
 
-python -m proto_md run $FILE
+python -m proto_md run $FILE -debug
