@@ -116,9 +116,11 @@ class SpaceWarpingSubsystem(subsystems.SubSystem):
         """
         ndim = 3
         nCG = len(dCG) / ndim
-        assert nCG.is_integer(), f"dCG must be of length (nCG*ndim). Supplied nCG = {len(dCG)}!"
+        assert (
+            nCG.is_integer()
+        ), f"dCG must be of length (nCG*ndim). Supplied nCG = {len(dCG)}!"
         nCG = int(nCG)
-        self.atoms.positions += self.computeCG_inv(dCG.reshape(nCG,ndim))
+        self.atoms.positions += self.computeCG_inv(dCG.reshape(nCG, ndim))
 
     def minimized(self):
         pass
