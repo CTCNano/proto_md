@@ -1,7 +1,8 @@
 import MDAnalysis as mda
 import proto_md.subsystems as ss
 
-universe = mda.Universe("sample/SpaceWarping/Struct/1PRT.gro")
+universe = mda.Universe("sample/SpaceWarping/Struct/dialanine.gro")
+
 
 def test_subsystem_method1():
     nCG, SS = ss.SpaceWarpingSubsystemFactory(kmax=1)
