@@ -62,8 +62,11 @@ class Integrator:
         and these values are saved to the current_timestep.
         """
 
-        # save velocities before energy min
-        velo = self.system.universe.atoms.velocities.copy()
+        # save velocities before energy min. Set to 0 if undefined.
+        try:
+            velo = self.system.universe.atoms.velocities.copy()
+        except Exception:
+            velo = self.system.universe.atoms.positions * 0
 
         # first minimize in vacuum, in either case,
         # fixes problems with langevin bond deformation.
