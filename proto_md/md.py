@@ -351,6 +351,7 @@ def setup_md(
     logging.debug("calling setup.MD with kwargs: {}".format(kwargs))
 
     kwargs.setdefault("r", struct)
+    kwargs.pop("multi", None)  # -multi is for proto_md only
 
     setup_MD = gromacs.setup.MD(
         dirname,
