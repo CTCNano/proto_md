@@ -345,7 +345,9 @@ class System(object):
         """
         timesteps = [int(k) for k in self.hdf[TIMESTEPS].keys()]
         if len(timesteps):
-            return Timestep(self.hdf[TIMESTEPS + "/" + str(max(timesteps))])
+            return Timestep(
+                self.hdf[TIMESTEPS + b"/" + bytes(str(max(timesteps)), "utf-8")]
+            )
         else:
             return None
 
@@ -382,7 +384,8 @@ class System(object):
             # link the starting positions to the previous timesteps final positions
             current_group.id.links.create_soft(
                 Timestep.ATOMIC_STARTING_POSITIONS,
-                last._group.name + "/" + Timestep.ATOMIC_FINAL_POSITIONS,
+                bytes(last._group.name + "/", "utf-8")
+                + Timestep.ATOMIC_FINAL_POSITIONS,
             )
             src_files = last._group
             timestep_number = last.timestep + 1
@@ -417,7 +420,7 @@ class System(object):
         # find the last timestep, and set this one to the next one, and move it there.
         timesteps = [int(k) for k in self.hdf[TIMESTEPS].keys()]
         prev = -1 if len(timesteps) == 0 else max(timesteps)
-        finished = TIMESTEPS + "/" + str(prev + 1)
+        finished = TIMESTEPS + b"/" + bytes("{}".format(prev + 1), "utf-8")
         self.hdf.id.move(CURRENT_TIMESTEP, finished)
 
         self.hdf.flush()
