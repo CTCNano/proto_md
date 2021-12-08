@@ -215,6 +215,9 @@ Protein             3
 #include "posre.itp"
 #endif
 
+; Include water topology
+#include "gromos43a1.ff/spce.itp"
+
 [ system ]
 ; Name
 GROningen MAchine for Chemical Simulation
