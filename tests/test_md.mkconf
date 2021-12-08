@@ -1,0 +1,25 @@
+#!/bin/sh
+
+FILE="test_md.hdf5"
+
+python -m proto_md config \
+	   -o $FILE \
+	   -struct '../sample/SpaceWarping/Struct/dialanine.gro' \
+	   -temperature 310.0 \
+	   -subsystem_selects "protein" \
+	   -cg_steps 1 \
+	   -dt 1.0 \
+	   -mn_steps 5 \
+	   -eq_steps 5 \
+	   -md_steps 5 \
+	   -top '../sample/SpaceWarping/Top/dialanine.top' \
+	   -cation "NA" \
+	   -anion "CL" \
+	   -concentration 0.2 \
+           -I ../sample/SpaceWarping/Top \
+	   -multi 1 \
+	   -integrator proto_md.integrators.FactorizationIntegrator \
+	   -subsystem_factory \
+	    proto_md.subsystems.SpaceWarpingSubsystemFactory \
+	   -subsystem_args "{'kmax':1}"
+
