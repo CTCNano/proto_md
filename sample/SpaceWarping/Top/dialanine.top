@@ -216,7 +216,10 @@ Protein             3
 #endif
 
 ; Include water topology
-#include "gromos43a1.ff/spce.itp"
+#include "amber99.ff/spce.itp"
+
+; Include ion topology
+#include "amber99.ff/ions.itp"
 
 [ system ]
 ; Name
