@@ -15,7 +15,7 @@
 ;	Command line:
 ;	  gmx pdb2gmx -f dialanine.gro
 ;	Force field was read from the standard GROMACS share directory.
-;
+;       Gromos water spce force field is used.
 
 ; Include forcefield parameters
 #include "amber99.ff/forcefield.itp"
