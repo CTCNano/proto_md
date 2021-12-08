@@ -2,11 +2,13 @@ import pytest
 import os
 import proto_md
 import subprocess
+import tempfile
 
-input = subprocess.call(["bash test_md.mkconf"], shell=True)
+input_file = tempfile.NamedTemporaryFile(suffix=".hdf5").name
+input = subprocess.call(["bash", "test_md.mkconf", input_file], shell=False)
 
-s1 = proto_md.system.System("test_md.hdf5", mode="a")
-s2 = proto_md.system.System("test_md.hdf5", mode="a")
+s1 = proto_md.system.System(input_file, mode="a")
+s2 = proto_md.system.System(input_file, mode="a")
 
 
 def test_energy_minimization():
@@ -50,5 +52,5 @@ def test_MD_whole_with_solvate():
     s1.end_timestep()
 
 
-os.remove("test_md.hdf5")
+#os.remove("test_md.hdf5")
 os.remove("proto.log")

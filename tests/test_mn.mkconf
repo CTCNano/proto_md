@@ -1,6 +1,6 @@
 #!/bin/sh
 
-FILE="test_mn.hdf5"
+FILE=$1
 
 python -m proto_md config \
 	   -o $FILE \
