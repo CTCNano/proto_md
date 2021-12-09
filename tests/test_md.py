@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 
 input_file = tempfile.NamedTemporaryFile(suffix=".hdf5").name
-config = "./test_md.mkconf"
+config = "./tests/test_md.mkconf"
 config = os.path.abspath(config)
 input = subprocess.call(["bash", config, input_file], shell=False)
 
