@@ -5,7 +5,10 @@ import subprocess
 import tempfile 
 
 input_file = tempfile.NamedTemporaryFile(suffix=".hdf5").name
-input = subprocess.call(["bash","test_mn.mkconf",input_file], shell=False)
+config = "./test_mn.mkconf"
+config = os.path.abspath(config)
+
+input = subprocess.call(["bash",config,input_file], shell=False)
 
 s = proto_md.system.System(input_file, mode="a")
 
