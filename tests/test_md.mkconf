@@ -12,7 +12,7 @@ python -m proto_md config \
 	   -mn_steps 5 \
 	   -eq_steps 5 \
 	   -md_steps 5 \
-	   -top './sample/SpaceWarping/Top/dialanine.top' \
+	   -top './tests/dialanine.top' \
 	   -cation "NA" \
 	   -anion "CL" \
 	   -concentration 0.2 \
