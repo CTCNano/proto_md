@@ -1,6 +1,15 @@
 name: test
+
 channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
 dependencies:
     # Base depends
   - python
   - pip
+    # Scientific Computation Packages
+  - gromacs
+  - mdanalysis
+  - openmpi  

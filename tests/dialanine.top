@@ -15,7 +15,7 @@
 ;	Command line:
 ;	  gmx pdb2gmx -f dialanine.gro
 ;	Force field was read from the standard GROMACS share directory.
-
+;       Gromos water spce force field is used.
 
 ; Include forcefield parameters
 #include "amber99.ff/forcefield.itp"
@@ -214,6 +214,12 @@ Protein             3
 #ifdef POSRES
 #include "posre.itp"
 #endif
+
+; Include water topology
+#include "amber99.ff/spce.itp"
+
+; Include ion topology
+#include "amber99.ff/ions.itp"
 
 [ system ]
 ; Name
